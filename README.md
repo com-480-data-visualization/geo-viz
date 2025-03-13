@@ -4,7 +4,7 @@
 | -------------- | ------ |
 | Raphael Fluckiger | 295790 |
 | Rached Toukko | |
-| Paul Guillon | |
+| Paul Guillon | 314517 |
 
 [Milestone 1](#milestone-1) • [Milestone 2](#milestone-2) • [Milestone 3](#milestone-3)
 
