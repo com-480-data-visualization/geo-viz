@@ -20,10 +20,10 @@ Please, fill the following sections about your project.
 ### Dataset
 
 Our dataset consists of a collection of several CSV files taken from the following Kaggle datasets: 
-Tourism by Mohamadreza Momeni (https://www.kaggle.com/datasets/imtkaggleteam/tourism)
-Word Population Dataset by Sourav Banerjee (https://www.kaggle.com/datasets/iamsouravbanerjee/world-population-dataset)
-Average Monthly surface temperature (1940-2024) by Samith Chimminiyan (https://www.kaggle.com/datasets/samithsachidanandan/average-monthly-surface-temperature-1940-2024)
-We complement these three datasets with the table Number of World Heritage properties inscribed by each State Party (168) from the UNESCO website (https://whc.unesco.org/en/list/stat) that was extracted and converted to the CSV file uwh_by_country.csv.
+[Tourism by Mohamadreza Momeni](https://www.kaggle.com/datasets/imtkaggleteam/tourism)
+[Word Population Dataset by Sourav Banerjee](https://www.kaggle.com/datasets/iamsouravbanerjee/world-population-dataset)
+[Average Monthly surface temperature (1940-2024) by Samith Chimminiyan](https://www.kaggle.com/datasets/samithsachidanandan/average-monthly-surface-temperature-1940-2024)
+We complement these three datasets with the table Number of World Heritage properties inscribed by each State Party (168) from the [UNESCO website](https://whc.unesco.org/en/list/stat) that was extracted and converted to the CSV file uwh_by_country.csv.
 Here is a brief description of each CSV file that we will use:
 
 |Dataset|Description|
