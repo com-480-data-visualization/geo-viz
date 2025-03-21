@@ -62,15 +62,15 @@ The first exploratory analysis are in this [notebook](https://github.com/com-480
 
  - What others have already done with the data?
  
-   https://championtraveler.com/travel-weather-map/travel-weather-map-detailed-celsius/
+https://championtraveler.com/travel-weather-map/travel-weather-map-detailed-celsius/
  - Why is your approach original?
    
-   While existing tools focus on specific aspects such as weather or tourism statistics, our project aims to integrate multiple datasets, tourist arrivals, weather, expenditure per tourist, number of UNESCO World Heritage sites... into a single interactive map. This approach allows users to consider various factors simultaneously when choosing a travel destination. And adding carbon footprint data that can help travelers be more mindful of their environmental impact.
+While existing tools focus on specific aspects such as weather or tourism statistics, our project aims to integrate multiple datasets, tourist arrivals, weather, expenditure per tourist, number of UNESCO World Heritage sites... into a single interactive map. This approach allows users to consider various factors simultaneously when choosing a travel destination. And adding carbon footprint data that can help travelers be more mindful of their environmental impact.
  - What source of inspiration do you take? Visualizations that you found on other websites or magazines (might be unrelated to your data).
    
-   https://whitelabel.greatescape.co/landing
-   
-   https://ourworldindata.org/tourism
+https://whitelabel.greatescape.co/landing
+
+https://ourworldindata.org/tourism
 
 
 ## Milestone 2 (18th April, 5pm)
