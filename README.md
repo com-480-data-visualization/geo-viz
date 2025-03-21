@@ -19,11 +19,26 @@ Please, fill the following sections about your project.
 
 ### Dataset
 
-> Find a dataset (or multiple) that you will explore. Assess the quality of the data it contains and how much preprocessing / data-cleaning it will require before tackling visualization. We recommend using a standard dataset as this course is not about scraping nor data processing.
->
-> Hint: some good pointers for finding quality publicly available datasets ([Google dataset search](https://datasetsearch.research.google.com/), [Kaggle](https://www.kaggle.com/datasets), [OpenSwissData](https://opendata.swiss/en/), [SNAP](https://snap.stanford.edu/data/) and [FiveThirtyEight](https://data.fivethirtyeight.com/)), you could use also the DataSets proposed by the ENAC (see the Announcements section on Zulip).
+Our dataset consists of a collection of several CSV files taken from the following Kaggle datasets: 
+Tourism by Mohamadreza Momeni (https://www.kaggle.com/datasets/imtkaggleteam/tourism)
+Word Population Dataset by Sourav Banerjee (https://www.kaggle.com/datasets/iamsouravbanerjee/world-population-dataset)
+Average Monthly surface temperature (1940-2024) by Samith Chimminiyan (https://www.kaggle.com/datasets/samithsachidanandan/average-monthly-surface-temperature-1940-2024)
+We complement these three datasets with the table Number of World Heritage properties inscribed by each State Party (168) from the UNESCO website (https://whc.unesco.org/en/list/stat) that was extracted and converted to the CSV file uwh_by_country.csv.
+Here is a brief description of each CSV file that we will use:
 
-### Problematic
+|Dataset|Description|
+|-----------|-----------|
+|average-monthly-surface-temperature.csv|Average temperature by year and month between 1940 and 2024 for every country.|
+|world_population.csv|Population data for every country between 1970 and 2022.|
+|15-foreign-guests-in-hotels-and-similar-establishments.csv|Counts the number of foreign guests in tourism accommodations for every country over several years.|
+|21-average-expenditures-of-international-tourists-domestically.csv|Inbound tourism expenditure per 1000 people for every country over several years.|
+|23-international-tourist-trips-per-1000-people.csv|Inbound arrivals of tourists per 1000 people for every country over several years.|
+|uwh_by_country.csv|Number of UNESCO World Heritage sites by country|
+|https://whc.unesco.org/en/list/xml/|UNESCO World heritage sites XML with various fields (GPS coordinates, description, …)|
+
+The different CSV files don’t have missing values and often use an ISO code for indexing countries. This will make it easy for us to pre-process the data and merge the tables for our needs. A preprocessing and preliminary analysis of the datasets is available in the 
+Exploratory Data Analysis part.
+
 
 This project aims at displaying useful information for a trip on an interactive world map. Selected countries will show information (tourism data, UNESCO world heritage locations, average temperature, mean expenditure of stay, ...) in a single click and will also be displayed in different colors according to various criteria (selected by the user), so you can have an idea at a glance. 
 
