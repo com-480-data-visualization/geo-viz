@@ -25,7 +25,7 @@ Our dataset consists of a collection of several CSV files taken from the followi
 - [Word Population Dataset by Sourav Banerjee](https://www.kaggle.com/datasets/iamsouravbanerjee/world-population-dataset)
 - [Average Monthly surface temperature (1940-2024) by Samith Chimminiyan](https://www.kaggle.com/datasets/samithsachidanandan/average-monthly-surface-temperature-1940-2024)
 
-We complement these three datasets with the table Number of World Heritage properties inscribed by each State Party (168) from the [UNESCO website](https://whc.unesco.org/en/list/stat) that was extracted and converted to the CSV file uwh_by_country.csv.
+We complement these three datasets with the two tables on UNESCO World Heritage properties. The first one comes from the [UNESCO website](https://whc.unesco.org/en/list/stat) and was extracted and converted to the CSV file uwh_by_country.csv. The second one is an XML file also from the UNESCO website available [here](https://whc.unesco.org/en/list/xml).
 
 Here is a brief description of each CSV file that we will use:
 
@@ -37,7 +37,7 @@ Here is a brief description of each CSV file that we will use:
 |21-average-expenditures-of-international-tourists-domestically.csv|Inbound tourism expenditure per 1000 people for every country over several years.|
 |23-international-tourist-trips-per-1000-people.csv|Inbound arrivals of tourists per 1000 people for every country over several years.|
 |uwh_by_country.csv|Number of UNESCO World Heritage sites by country|
-|https://whc.unesco.org/en/list/xml/|UNESCO World heritage sites XML with various fields (GPS coordinates, description, …)|
+|whc.unesco.org.xml|UNESCO World heritage sites XML with various fields (GPS coordinates, description, …)|
 
 The different CSV files don’t have missing values and often use an ISO code for indexing countries. This will make it easy for us to pre-process the data and merge the tables for our needs. A preprocessing and preliminary analysis of the datasets is available in the 
 Exploratory Data Analysis part.
@@ -55,7 +55,7 @@ The project aims at making it simple to plan your next trip while keeping track 
 
 ### Exploratory Data Analysis
 
-The first exploratory analysis are in this [notebook](https://github.com/com-480-data-visualization/geo-viz/blob/master/exploratory_analysis.ipynb)
+The first exploratory analysis are in this [notebook](https://github.com/com-480-data-visualization/geo-viz/blob/master/exploratory_analysis.ipynb).
 
 ### Related work
 
