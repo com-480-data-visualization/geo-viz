@@ -36,8 +36,8 @@ Here is a brief description of each CSV file that we will use:
 |15-foreign-guests-in-hotels-and-similar-establishments.csv|Counts the number of foreign guests in tourism accommodations for every country over several years.|
 |21-average-expenditures-of-international-tourists-domestically.csv|Inbound tourism expenditure per 1000 people for every country over several years.|
 |23-international-tourist-trips-per-1000-people.csv|Inbound arrivals of tourists per 1000 people for every country over several years.|
-|uwh_by_country.csv|Number of UNESCO World Heritage sites by country|
-|whc.unesco.org.xml|UNESCO World heritage sites XML with various fields (GPS coordinates, description, …)|
+|uwh_by_country.csv|Number of UNESCO World Heritage sites by country.|
+|whc.unesco.org.xml|UNESCO World heritage sites XML with various fields (GPS coordinates, description, …).|
 
 The different CSV files don’t have missing values and often use an ISO code for indexing countries. This will make it easy for us to pre-process the data and merge the tables for our needs. A preprocessing and preliminary analysis of the datasets is available in the 
 Exploratory Data Analysis part.
