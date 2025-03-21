@@ -42,6 +42,8 @@ Here is a brief description of each CSV file that we will use:
 The different CSV files don’t have missing values and often use an ISO code for indexing countries. This will make it easy for us to pre-process the data and merge the tables for our needs. A preprocessing and preliminary analysis of the datasets is available in the 
 Exploratory Data Analysis part.
 
+### Problematic
+**Comment choisir sa destination touristique ?**
 
 This project aims at displaying useful information for a trip on an interactive world map. Selected countries will show information (tourism data, UNESCO world heritage locations, average temperature, mean expenditure of stay, ...) in a single click and will also be displayed in different colors according to various criteria (selected by the user), so you can have an idea at a glance. 
 
