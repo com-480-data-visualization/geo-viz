@@ -26,7 +26,9 @@ Please, fill the following sections about your project.
 ### Problematic
 
 This project aims at displaying useful information for a trip on an interactive world map. Selected countries will show information (tourism data, UNESCO world heritage locations, average temperature, mean expenditure of stay, ...) in a single click and will also be displayed in different colors according to various criteria (selected by the user), so you can have an idea at a glance. 
+
 It would also be interesting to add the carbon footprint of the flight alongside the other information so the user can be aware of this when looking for their next trip. This part would be done using an API that computes the carbon footprint for us ([Carbon Footprint](https://connect.myclimate.org/api-overview)).
+
 As a bonus, we also had the idea of plotting a treemap ([Treemap example](https://finviz.com/map.ashx?t=sec_all)) chart per attribute to visualize the countries advantages in an unconventional way.
 The project aims at making it simple to plan your next trip while keeping track of different parameters that might affect the selected destination. The target audience for this project is travelers in general, but also those who are concerned about their ecological footprint and still want to travel. 
 
