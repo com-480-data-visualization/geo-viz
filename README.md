@@ -38,7 +38,7 @@ The different CSV files don’t have missing values and often use an ISO code fo
 Exploratory Data Analysis part.
 
 ### Problematic
-**Comment choisir sa destination touristique ?**
+**How to choose your destination for your next trip ?**
 
 This project aims at displaying useful information for a trip on an interactive world map. Selected countries will show information (tourism data, UNESCO world heritage locations, average temperature, mean expenditure of stay, ...) in a single click and will also be displayed in different colors according to various criteria (selected by the user), so you can have an idea at a glance. 
 
