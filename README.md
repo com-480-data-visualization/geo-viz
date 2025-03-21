@@ -61,8 +61,16 @@ The first exploratory analysis are in this [notebook](https://github.com/com-480
 
 
 > - What others have already done with the data?
+> 
+>   https://championtraveler.com/travel-weather-map/travel-weather-map-detailed-celsius/
 > - Why is your approach original?
+>   
+>   While existing tools focus on specific aspects such as weather or tourism statistics, our project aims to integrate multiple datasets, tourist arrivals, weather, expenditure per tourist, number of UNESCO World Heritage sites... into a single interactive map. This approach allows users to consider various factors simultaneously when choosing a travel destination. And adding carbon footprint data that can help travelers be more mindful of their environmental impact.
 > - What source of inspiration do you take? Visualizations that you found on other websites or magazines (might be unrelated to your data).
+>   
+>   https://whitelabel.greatescape.co/landing
+>   
+>   https://ourworldindata.org/tourism
 > - In case you are using a dataset that you have already explored in another context (ML or ADA course, semester project...), you are required to share the report of that work to outline the differences with the submission for this class.
 
 ## Milestone 2 (18th April, 5pm)
