@@ -111,7 +111,7 @@ body {
 
 #world_map {
     width: 100%;
-    height: 80%; /* Adjust height to leave space for the dropdown and title */
+    height: 100%;
 }
 
 .map-title {

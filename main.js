@@ -10,24 +10,30 @@ const svg = d3.select("svg")
 
 // Map and projection
 const path = d3.geoPath();
-const projection = d3.geoMercator()
-  .scale(130) // Adjust scale for better fit
-  .center([0, 30]) // Center the map
+const projection = d3.geoNaturalEarth1()
+  .scale(140) // Adjust scale for better fit
+  .center([0, 0]) // Center the map
   .translate([400, 200]); // Translate to the center of the viewBox
 
-// Data and color scale
-let data = new Map();
+// Color scales
 const colorScale = d3.scaleLog()
   .range([0, 1]);
 
-// Load external data and boot
+// Load data through promises
 const map_promise = d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
-    .then((topojson) => topojson.features)
-const pop_promise = d3.csv("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/world_population.csv", 
-    (d) => data.set(d["CCA3"], +d["2022 Population"]));
+    .then((topojson) => topojson.features);
+const temperature_promise = d3.csv("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/world_population.csv")
+    .then((data) => {
+        let temperature_data = {};
+        dataforEach((row) => {
+            temperature_data[row.Code] = row.
+        });
+    });
 Promise.all([map_promise, pop_promise]).then((results) => {
   console.log("Data loaded");
   let topo = results[0];
+  let data = results[1];
+  console.log(data);
   colorScale.domain(d3.extent(data.values()));
   // Draw the map
   svg.append("g")
