@@ -1,0 +1,163 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column; /* Stack sections vertically */
+}
+
+.home-page {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background-color: #f4f4f4;
+    padding: 20px;
+}
+
+.home-page h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+.home-page p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    max-width: 600px;
+}
+
+.home-page button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.home-page button:hover {
+    background-color: #0056b3;
+}
+
+.map-section {
+    height: 100vh;
+    display: flex;
+    flex-direction: row; /* Divide into two columns */
+}
+
+.map-container {
+    width: 70%; /* Map takes 70% of the width */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+.dropdown-button {
+    padding: 10px 15px;
+    font-size: 1rem;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.dropdown-button:hover {
+    background-color: #0056b3;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.dropdown-content .menu-button {
+    padding: 10px 15px;
+    font-size: 1rem;
+    background-color: white;
+    color: #007BFF;
+    border: none;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.dropdown-content .menu-button:hover {
+    background-color: #f4f4f4;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+#world_map {
+    width: 100%;
+    height: 80%; /* Adjust height to leave space for the dropdown and title */
+}
+
+.map-title {
+    font-size: 1.5rem;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.info-panel {
+    width: 30%; /* Right panel takes 30% of the width */
+    background-color: #f9f9f9;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    border-left: 1px solid #ddd;
+}
+
+.info-panel h2 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.info-panel p {
+    font-size: 1rem;
+    margin-bottom: 20px;
+}
+
+.country-details {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.country-details h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.2rem;
+}
+
+.country-details p {
+    margin: 0;
+    font-size: 1rem;
+}

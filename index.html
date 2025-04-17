@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Geo-Viz</title>
+    <!-- Load CSS file -->
+    <link rel="stylesheet" href="main.css">
+    <!-- Load d3.js and main script-->
+    <script src="https://d3js.org/d3.v6.js"></script>
+    <script src="main.js" defer></script>
+</head>
+<body>
+    <!-- Home page section -->
+    <div class="home-page">
+        <h1>Welcome to Geo-Viz</h1>
+        <p>Find the <b>ideal destination</b> for your next trip by exploring the world through interactive maps 
+            and data visualizations.
+            Discover tourism statistics, temperature trends, cultural sites, and more!</p>
+        <button id="start-button">Start Exploring</button>
+    </div>
+
+    <!-- Map section -->
+    <div class="map-section">
+        <!-- Left panel: Map -->
+        <div class="map-container">
+            <div class="dropdown">
+                <button class="dropdown-button">Select criterion</button>
+                <div class="dropdown-content">
+                    <button class="menu-button" data-map-type="temperature">Temperature</button>
+                    <button class="menu-button" data-map-type="tourism">Tourism</button>
+                    <button class="menu-button" data-map-type="budget">Trip Budget</button>
+                    <button class="menu-button" data-map-type="cultural sites">Cultural Sites</button>
+                    <button class="menu-button" data-map-type="natural sites">Natural Sites</button>
+                </div>
+            </div>
+            <svg id="world_map"></svg>
+            <h2 class="map-title">World Map</h2>
+        </div>
+
+        <!-- Right panel: Instructions and country details -->
+        <div class="info-panel">
+            <h2>Explore the World</h2>
+            <p>Select a criterion from the dropdown menu to visualize data on the map. Then, click on a country to see more details.</p>
+            <div class="country-details">
+                <h3>Country Details</h3>
+                <p>Select a country to see its details here.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
