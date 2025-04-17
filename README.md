@@ -50,7 +50,7 @@ The project aims at making it simple to plan your next trip while keeping track 
 
 ### Exploratory Data Analysis
 
-The first exploratory analysis are in this [notebook](https://github.com/com-480-data-visualization/geo-viz/blob/master/exploratory_analysis.ipynb).
+The first exploratory analysis are in this [notebook](https://github.com/com-480-data-visualization/geo-viz/blob/master/eda/exploratory_analysis.ipynb).
 
 ### Related work
 
