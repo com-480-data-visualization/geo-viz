@@ -72,6 +72,8 @@ https://ourworldindata.org/tourism
 
 **10% of the final grade**
 
+Website skeleton available [here](https://com-480-data-visualization.github.io/geo-viz/).
+
 
 ## Milestone 3 (30th May, 5pm)
 
