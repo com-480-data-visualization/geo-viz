@@ -72,6 +72,8 @@ https://ourworldindata.org/tourism
 
 **10% of the final grade**
 
+First milestone in  PDF format [here](milestone2.pdf)
+
 Website skeleton available [here](https://com-480-data-visualization.github.io/geo-viz/).
 
 Some sketches are available as PDFs in the [sketches](sketches) folder. The sketches are not final but give a visual idea of the project's direction.
