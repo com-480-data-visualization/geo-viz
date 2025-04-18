@@ -72,7 +72,7 @@ https://ourworldindata.org/tourism
 
 **10% of the final grade**
 
-First milestone in  PDF format [here](milestone2.pdf)
+Second milestone in  PDF format [here](milestone2.pdf)
 
 Website skeleton available [here](https://com-480-data-visualization.github.io/geo-viz/).
 
