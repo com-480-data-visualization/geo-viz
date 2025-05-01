@@ -170,10 +170,12 @@ body {
 
 /* Selected country styling */
 .selected-country {
-    stroke: #f16529;
+    stroke: #c629f1;
     stroke-width: 6px;
-    /*stroke-linejoin: round;*/
+    stroke-linejoin: round;
+    stroke-linecap: round;
     vector-effect: non-scaling-stroke;
+    fill-rule: evenodd;
 }
 .data-section {
     margin-bottom: 15px;
