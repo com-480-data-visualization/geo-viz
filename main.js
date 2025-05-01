@@ -4,9 +4,19 @@ d3.select("#start-button").on("click", () =>
 );
 
 // The svg
-const svg = d3.select("svg")
+const svg = d3.select("svg#world_map")
   .attr("viewBox", `0 0 800 400`) // Set the viewBox to match the map's dimensions
   .attr("preserveAspectRatio", "xMidYMid meet"); // Ensure the map scales properly
+
+const g = svg.append("g");
+
+const zoom = d3.zoom()
+    .scaleExtent([1, 8]) // Set zoom limits
+    .on("zoom", (event) => {
+        g.attr("transform", event.transform); // Apply zoom transformation
+    });
+
+svg.call(zoom); // Apply zoom behavior to the SVG 
 
 // Map and projection
 const path = d3.geoPath();
@@ -114,7 +124,7 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
         );
     
         // Update the map
-        svg.selectAll("path")
+        g.selectAll("path")
             .data(topo)
             .join("path")
             .attr("d", d3.geoPath().projection(projection))
@@ -131,8 +141,9 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
             .on("mouseover", function(event, d) {
                 d3.select(this)
                     .attr("stroke", "#333")
-                    .attr("stroke-width", "1px")
-                    .attr("cursor", "pointer");
+                    .attr("stroke-width", "4px")
+                    .attr("cursor", "pointer")
+                    .attr("vector-effect", "non-scaling-stroke");
             })
             .on("mouseout", function(event, d) {
                 if (!this.classList.contains('selected-country')) {
@@ -149,7 +160,7 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
     // Function to handle country selection and display details
     function selectCountry(event, country, selectedDataset) {
         // Reset all countries to default styling
-        svg.selectAll("path").classed("selected-country", false)
+        g.selectAll("path").classed("selected-country", false)
             .attr("stroke", null)
             .attr("stroke-width", null);
         
@@ -218,5 +229,11 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
     d3.selectAll(".menu-button").on("click", function () {
         const selectedDataset = d3.select(this).attr("data-map-type");
         updateMap(selectedDataset);
+    });
+
+    d3.select("#reset-zoom").on("click", function() {
+        svg.transition()
+            .duration(750)
+            .call(zoom.transform, d3.zoomIdentity);
     });
 });

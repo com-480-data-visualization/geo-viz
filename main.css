@@ -171,8 +171,9 @@ body {
 /* Selected country styling */
 .selected-country {
     stroke: #f16529;
-    stroke-width: 2px;
-    stroke-linejoin: round;
+    stroke-width: 6px;
+    /*stroke-linejoin: round;*/
+    vector-effect: non-scaling-stroke;
 }
 .data-section {
     margin-bottom: 15px;
@@ -187,4 +188,26 @@ body {
 .data-section h4 {
     margin-bottom: 5px;
     color: #444;
+}
+
+.map-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+}
+
+#reset-zoom {
+    padding: 6px 10px;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: background-color 0.2s;
+}
+
+#reset-zoom:hover {
+    background-color: #f0f0f0;
 }
