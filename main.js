@@ -124,10 +124,91 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
                         ? data[d.id]?.[currentMonth]
                         : data[d.id];
                 return value ? scale(value) : "#ccc"; // Default color for missing data
+            })
+            .on("click", function(event, d) {
+                selectCountry(event, d, selectedDataset);
+            })
+            .on("mouseover", function(event, d) {
+                d3.select(this)
+                    .attr("stroke", "#333")
+                    .attr("stroke-width", "1px")
+                    .attr("cursor", "pointer");
+            })
+            .on("mouseout", function(event, d) {
+                if (!this.classList.contains('selected-country')) {
+                    d3.select(this)
+                        .attr("stroke", null)
+                        .attr("stroke-width", null);
+                }
             });
     
         // Show or hide the slider based on the selected dataset
         slider.style("display", selectedDataset === "temperature" ? "block" : "none");
+    }
+
+    // Function to handle country selection and display details
+    function selectCountry(event, country, selectedDataset) {
+        // Reset all countries to default styling
+        svg.selectAll("path").classed("selected-country", false)
+            .attr("stroke", null)
+            .attr("stroke-width", null);
+        
+        // Highlight the selected country
+        d3.select(event.currentTarget)
+            .classed("selected-country", true)
+            .attr("stroke", "#333")
+            .attr("stroke-width", "2px");
+        
+        // Get country data
+        const countryCode = country.id;
+        const countryName = country.properties.name;
+        
+        // Create HTML with all available data for this country
+        let detailHTML = `<h3>${countryName}</h3>`;
+        
+        // Temperature data
+        if (datasets.temperature[countryCode]) {
+            const temp = datasets.temperature[countryCode][currentMonth];
+            detailHTML += `
+                <div class="data-section">
+                    <h4>Temperature</h4>
+                    <p><strong>Average Temperature:</strong> ${temp !== undefined ? temp.toFixed(1) + "°C" : "Data not available"}</p>
+                    <p><strong>Month:</strong> ${new Date(0, currentMonth-1).toLocaleString('default', { month: 'long' })}</p>
+                </div>
+            `;
+        }
+        
+        // Tourism popularity data
+        if (datasets.popularity[countryCode]) {
+            const popularity = datasets.popularity[countryCode];
+            detailHTML += `
+                <div class="data-section">
+                    <h4>Tourism Popularity</h4>
+                    <p><strong>Score:</strong> ${popularity !== undefined ? popularity.toFixed(2) : "Data not available"}</p>
+                </div>
+            `;
+        }
+        
+        // Budget data
+        if (datasets.budget[countryCode]) {
+            const budget = datasets.budget[countryCode];
+            detailHTML += `
+                <div class="data-section">
+                    <h4>Trip Budget</h4>
+                    <p><strong>Average Cost:</strong> ${budget !== undefined ? "$" + budget.toFixed(0) : "Data not available"}</p>
+                </div>
+            `;
+        }
+        
+        // If no data available for any dataset
+        if (!datasets.temperature[countryCode] && 
+            !datasets.popularity[countryCode] && 
+            !datasets.budget[countryCode]) {
+            detailHTML += "<p>No data available for this country</p>";
+        }
+        
+        // Update the existing country-details div
+        d3.select(".country-details").html(detailHTML);
     }
     
     // Initial map rendering with temperature data

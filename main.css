@@ -167,3 +167,24 @@ body {
     margin: 10px auto;
     display: block;
 }
+
+/* Selected country styling */
+.selected-country {
+    stroke: #f16529;
+    stroke-width: 2px;
+    stroke-linejoin: round;
+}
+.data-section {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.data-section:last-child {
+    border-bottom: none;
+}
+
+.data-section h4 {
+    margin-bottom: 5px;
+    color: #444;
+}
