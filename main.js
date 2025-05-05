@@ -27,7 +27,7 @@ const path = d3.geoPath();
 const projection = d3.geoMercator()
     .scale(140) // Adjust scale for better fit
     .center([0, 0]) // Center the map
-    .translate([400, 200]); // Translate to the center of the viewBox
+    .translate([400, 200]); // Translate to the center of the otate([0, 0])viewBox
 
 // Define color scales for each dataset
 const colorScales = {
@@ -243,38 +243,29 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
         const area = width * height;
         const aspectRatio = width / height;
         
-        console.log("Country:", country.properties.name);
-        console.log("Area:", area, "Aspect ratio:", aspectRatio.toFixed(2));
+        // Base scale calculation with more moderate zooming
+        let baseScale = 0.8 / Math.max(width / 800, height / 400);
         
-        // Base scale calculation (current approach)
-        let baseScale = 0.9 / Math.max(width / 800, height / 400);
-        
-        // Adjust scale based on country characteristics
+        // Adjust scale based on country characteristics with more conservative values
         let scale = baseScale;
         
-        // Handle special cases
+        // Handle special cases with reduced zoom levels
         if (area < 20) {
-            // Very small countries - ensure they're visible (islands, city states)
-            scale = Math.max(baseScale, 4);
-            console.log("Very small country detected, applying minimum zoom");
+            // Very small countries - use a more moderate zoom
+            scale = Math.min(Math.max(baseScale, 2.5), 4);
         } else if (area < 100) {
-            // Small countries - ensure they're prominent
-            scale = Math.min(Math.max(baseScale, 3), 7);
-            console.log("Small country detected, adjusting zoom");
+            // Small countries - more moderate zoom
+            scale = Math.min(Math.max(baseScale, 2), 3.5);
         } else if (area > 2000) {
             // Very large countries (Russia, Canada, etc)
-            // Ensure the entire country is visible with some padding
-            scale = Math.min(baseScale * 0.85, 5);
-            console.log("Large country detected, ensuring full visibility");
+            scale = Math.min(baseScale * 0.7, 3);
         } else if (aspectRatio > 3 || aspectRatio < 0.33) {
-            // Countries with extreme aspect ratios (very wide or very tall)
-            // Ensure we see the whole shape
-            scale = Math.min(baseScale * 0.9, 6);
-            console.log("Unusual shape detected, adjusting for visibility");
+            // Countries with extreme aspect ratios
+            scale = Math.min(baseScale * 0.8, 3);
         }
         
-        // Ensure scale is within reasonable limits
-        scale = Math.min(scale, 7);  // Maximum zoom level
+        // More conservative scale limits
+        scale = Math.min(scale, 4);  // Lower maximum zoom level
         scale = Math.max(scale, 1);  // Minimum zoom level
         
         // Calculate translation to center
@@ -290,8 +281,6 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
                  .translate(translateX, translateY)
                  .scale(scale)
            );
-           
-        console.log("Final scale:", scale.toFixed(2), "Translation:", [translateX.toFixed(0), translateY.toFixed(0)]);
     }
 
     // Initial map rendering with temperature data
