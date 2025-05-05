@@ -11,13 +11,19 @@ const svg = d3.select("svg#world_map")
 const g = svg.append("g");
 
 const zoom = d3.zoom()
-    .scaleExtent([1, 8]) // Set zoom limits
+    .scaleExtent([1, 8])
     .on("zoom", (event) => {
-        g.attr("transform", event.transform); // Apply zoom transformation
+        g.attr("transform", event.transform);
 
-        const strokeWidth = 1.5 / event.transform.k;
-        g.selectAll("path.selected-country")
-            .attr("stroke-width", strokeWidth);
+        // Adjust stroke width based on zoom level but maintain styles
+        const sourceStrokeWidth = countryStyles.source.strokeWidth / event.transform.k;
+        const destStrokeWidth = countryStyles.destination.strokeWidth / event.transform.k;
+        
+        g.selectAll("path.source-country")
+            .attr("stroke-width", sourceStrokeWidth);
+            
+        g.selectAll("path.destination-country")
+            .attr("stroke-width", destStrokeWidth);
     });
 
 svg.call(zoom); // Apply zoom behavior to the SVG 
@@ -85,6 +91,112 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
         budget: "Trip Budget Map"
     };
 
+    // Track selected countries and selection mode
+    let selectedCountries = {
+        source: null,
+        destination: null
+    };
+    let selectionMode = 'source'; // Default selection mode
+    
+    // Add style for source and destination countries
+    const countryStyles = {
+        source: {
+            stroke: "#0066cc",
+            strokeWidth: 4,  // Changed from "4px" to 4
+            className: "source-country"
+        },
+        destination: {
+            stroke: "#cc6600",
+            strokeWidth: 4,  // Changed from "4px" to 4
+            className: "destination-country"
+        }
+    };
+    
+    // Enhanced event listeners for selection mode buttons with defensive checks
+    const sourceButton = d3.select("#source-mode");
+    const destinationButton = d3.select("#destination-mode");
+    const modeLabel = d3.select(".selection-mode .mode-label");
+
+    // Only add event listeners if the elements exist
+    if (!sourceButton.empty()) {
+        sourceButton.on("click", function() {
+            selectionMode = 'source';
+            d3.selectAll(".mode-button").classed("active", false);
+            d3.select(this).classed("active", true);
+            
+            // Visual indicator that shows which mode is active
+            if (!modeLabel.empty()) {
+                modeLabel.text("Select Source Country:")
+                    .style("color", countryStyles.source.stroke);
+            }
+        });
+    }
+
+    if (!destinationButton.empty()) {
+        destinationButton.on("click", function() {
+            selectionMode = 'destination';
+            d3.selectAll(".mode-button").classed("active", false);
+            d3.select(this).classed("active", true);
+            
+            // Visual indicator that shows which mode is active
+            if (!modeLabel.empty()) {
+                modeLabel.text("Select Destination Country:")
+                    .style("color", countryStyles.destination.stroke);
+            }
+        });
+    }
+
+    // Set initial label only if the element exists
+    if (!modeLabel.empty()) {
+        modeLabel.text("Select Source Country:")
+            .style("color", countryStyles.source.stroke);
+    }
+
+    // Create selection controls if they don't exist
+    if (d3.select(".selection-controls").empty()) {
+        const mapContainer = d3.select(".map-container");
+        
+        const controls = mapContainer.append("div")
+            .attr("class", "selection-controls");
+        
+        const selectionMode = controls.append("div")
+            .attr("class", "selection-mode");
+        
+        selectionMode.append("span")
+            .attr("class", "mode-label")
+            .text("Select Source Country:")
+            .style("color", countryStyles.source.stroke);
+        
+        const buttonGroup = selectionMode.append("div")
+            .attr("class", "button-group");
+        
+        buttonGroup.append("button")
+            .attr("id", "source-mode")
+            .attr("class", "mode-button active")
+            .text("Source Country")
+            .on("click", function() {
+                selectionMode = 'source';
+                d3.selectAll(".mode-button").classed("active", false);
+                d3.select(this).classed("active", true);
+                d3.select(".mode-label")
+                    .text("Select Source Country:")
+                    .style("color", countryStyles.source.stroke);
+            });
+        
+        buttonGroup.append("button")
+            .attr("id", "destination-mode")
+            .attr("class", "mode-button")
+            .text("Destination Country")
+            .on("click", function() {
+                selectionMode = 'destination';
+                d3.selectAll(".mode-button").classed("active", false);
+                d3.select(this).classed("active", true);
+                d3.select(".mode-label")
+                    .text("Select Destination Country:")
+                    .style("color", countryStyles.destination.stroke);
+            });
+    }
+
     let currentMonth = 1; // Default month for temperature map
     // Add slider for temperature map below the map title
     const slider = d3.select(".map-container")
@@ -144,89 +256,107 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
                 centerOnCountry(d);
             })
             .on("mouseover", function (event, d) {
-                d3.select(this)
-                    .attr("stroke", "#333")
-                    .attr("stroke-width", "4px")
-                    .attr("cursor", "pointer")
-                    .attr("vector-effect", "non-scaling-stroke");
+                // Check if this country is already selected
+                const isSource = selectedCountries.source && selectedCountries.source.code === d.id;
+                const isDestination = selectedCountries.destination && selectedCountries.destination.code === d.id;
+                
+                // Don't override styling if it's already a selected country
+                if (!isSource && !isDestination) {
+                    d3.select(this)
+                        .attr("stroke", "#333")
+                        .attr("stroke-width", 4)  // Use same value as in countryStyles
+                        .attr("cursor", "pointer")
+                        .attr("vector-effect", "non-scaling-stroke");
+                }
             })
             .on("mouseout", function (event, d) {
-                if (!this.classList.contains('selected-country')) {
+                // Check if this is either a source or destination country
+                const isSource = selectedCountries.source && selectedCountries.source.code === d.id;
+                const isDestination = selectedCountries.destination && selectedCountries.destination.code === d.id;
+                
+                // Only remove styling if this is not a selected country
+                if (!isSource && !isDestination) {
                     d3.select(this)
                         .attr("stroke", null)
                         .attr("stroke-width", null);
+                } else {
+                    // Ensure proper styling is maintained for selected countries
+                    if (isSource) {
+                        d3.select(this)
+                            .attr("stroke", countryStyles.source.stroke)
+                            .attr("stroke-width", countryStyles.source.strokeWidth);
+                    } else if (isDestination) {
+                        d3.select(this)
+                            .attr("stroke", countryStyles.destination.stroke)
+                            .attr("stroke-width", countryStyles.destination.strokeWidth);
+                    }
                 }
             });
 
         // Show or hide the slider based on the selected dataset
         slider.style("display", selectedDataset === "temperature" ? "block" : "none");
+        
+        // Make sure country styling is maintained after map update
+        updateCountryStyles();
     }
 
     // Function to handle country selection and display details
     function selectCountry(event, country, selectedDataset) {
-        // Reset all countries to default styling
-        g.selectAll("path").classed("selected-country", false)
-            .attr("stroke", null)
-            .attr("stroke-width", null);
-
-        // Highlight the selected country
-        d3.select(event.currentTarget)
-            .classed("selected-country", true)
-            .attr("stroke", "#333")
-            .attr("stroke-width", "2px");
-
         // Get country data
         const countryCode = country.id;
         const countryName = country.properties.name;
-
+        
+        // Check if this country is already selected in the other mode to avoid conflicts
+        const otherMode = selectionMode === 'source' ? 'destination' : 'source';
+        
+        // If the same country is selected in both modes, clear the previous selection
+        if (selectedCountries[otherMode] && selectedCountries[otherMode].code === countryCode) {
+            selectedCountries[otherMode] = null;
+        }
+        
+        // Record the selected country based on selection mode
+        selectedCountries[selectionMode] = {
+            code: countryCode,
+            name: countryName,
+            element: event.currentTarget,
+            country: country
+        };
+        
+        // Apply proper styling to all countries
+        updateCountryStyles();
+        
+        // Center map on the selected country
         centerOnCountry(country);
+        
+        // Update the details panel
+        updateCountryDetails(selectedDataset);
+    }
 
-        // Create HTML with all available data for this country
-        let detailHTML = `<h3>${countryName}</h3>`;
-
-        // Temperature data
-        if (datasets.temperature[countryCode]) {
-            const temp = datasets.temperature[countryCode][currentMonth];
-            detailHTML += `
-                <div class="data-section">
-                    <h4>Temperature</h4>
-                    <p><strong>Average Temperature:</strong> ${temp !== undefined ? temp.toFixed(1) + "°C" : "Data not available"}</p>
-                    <p><strong>Month:</strong> ${new Date(0, currentMonth - 1).toLocaleString('default', { month: 'long' })}</p>
-                </div>
-            `;
+    // Function to handle country styling
+    function updateCountryStyles() {
+        // Reset all country styling first
+        g.selectAll("path")
+            .classed("source-country destination-country", false)
+            .attr("stroke", null)
+            .attr("stroke-width", null);
+        
+        // Apply styling to source country if selected
+        if (selectedCountries.source && selectedCountries.source.element) {
+            d3.select(selectedCountries.source.element)
+                .classed("source-country", true)
+                .attr("stroke", countryStyles.source.stroke)
+                .attr("stroke-width", countryStyles.source.strokeWidth)
+                .attr("vector-effect", "non-scaling-stroke");
         }
-
-        // Tourism popularity data
-        if (datasets.popularity[countryCode]) {
-            const popularity = datasets.popularity[countryCode];
-            detailHTML += `
-                <div class="data-section">
-                    <h4>Tourism Popularity</h4>
-                    <p><strong>Score:</strong> ${popularity !== undefined ? popularity.toFixed(2) : "Data not available"}</p>
-                </div>
-            `;
+        
+        // Apply styling to destination country if selected
+        if (selectedCountries.destination && selectedCountries.destination.element) {
+            d3.select(selectedCountries.destination.element)
+                .classed("destination-country", true)
+                .attr("stroke", countryStyles.destination.stroke)
+                .attr("stroke-width", countryStyles.destination.strokeWidth)
+                .attr("vector-effect", "non-scaling-stroke");
         }
-
-        // Budget data
-        if (datasets.budget[countryCode]) {
-            const budget = datasets.budget[countryCode];
-            detailHTML += `
-                <div class="data-section">
-                    <h4>Trip Budget</h4>
-                    <p><strong>Average Cost:</strong> ${budget !== undefined ? "$" + budget.toFixed(0) : "Data not available"}</p>
-                </div>
-            `;
-        }
-
-        // If no data available for any dataset
-        if (!datasets.temperature[countryCode] &&
-            !datasets.popularity[countryCode] &&
-            !datasets.budget[countryCode]) {
-            detailHTML += "<p>No data available for this country</p>";
-        }
-
-        // Update the existing country-details div
-        d3.select(".country-details").html(detailHTML);
     }
 
     function centerOnCountry(country) {
@@ -281,6 +411,98 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
                  .translate(translateX, translateY)
                  .scale(scale)
            );
+    }
+
+    // Function to update the country details panel
+    function updateCountryDetails(selectedDataset) {
+        let detailHTML = '';
+        
+        // Source country section
+        if (selectedCountries.source) {
+            detailHTML += `<h3>From: ${selectedCountries.source.name}</h3>`;
+            detailHTML += generateCountryDataHTML(selectedCountries.source.code);
+        } else {
+            detailHTML += `<h3>Select Source Country</h3>
+                          <p>Click on a country after selecting the "Source" mode</p>`;
+        }
+        
+        // Destination country section
+        if (selectedCountries.destination) {
+            detailHTML += `<h3>To: ${selectedCountries.destination.name}</h3>`;
+            detailHTML += generateCountryDataHTML(selectedCountries.destination.code);
+            
+            // Add section for trip details (carbon footprint placeholder)
+            if (selectedCountries.source) {
+                detailHTML += `
+                    <div class="trip-details">
+                        <h3>Trip Information</h3>
+                        <p>From ${selectedCountries.source.name} to ${selectedCountries.destination.name}</p>
+                        <p><strong>Carbon Footprint:</strong> <span class="carbon-data">Calculating...</span></p>
+                        <p class="note">Carbon footprint data will be available in the next update.</p>
+                    </div>
+                `;
+            }
+        } else {
+            detailHTML += `<h3>Select Destination Country</h3>
+                          <p>Click on a country after selecting the "Destination" mode</p>`;
+        }
+        
+        // Update the existing country-details div
+        d3.select(".country-details").html(detailHTML);
+        
+        // If both countries are selected, we could call the carbon emissions API here in the future
+        if (selectedCountries.source && selectedCountries.destination) {
+            // Placeholder for future API call:
+            // calculateCarbonEmissions(selectedCountries.source.code, selectedCountries.destination.code);
+        }
+    }
+
+    // Function to generate HTML for country data section
+    function generateCountryDataHTML(countryCode) {
+        let html = '';
+        
+        // Temperature data
+        if (datasets.temperature[countryCode]) {
+            const temp = datasets.temperature[countryCode][currentMonth];
+            html += `
+                <div class="data-section">
+                    <h4>Temperature</h4>
+                    <p><strong>Average Temperature:</strong> ${temp !== undefined ? temp.toFixed(1) + "°C" : "Data not available"}</p>
+                    <p><strong>Month:</strong> ${new Date(0, currentMonth - 1).toLocaleString('default', { month: 'long' })}</p>
+                </div>
+            `;
+        }
+
+        // Tourism popularity data
+        if (datasets.popularity[countryCode]) {
+            const popularity = datasets.popularity[countryCode];
+            html += `
+                <div class="data-section">
+                    <h4>Tourism Popularity</h4>
+                    <p><strong>Score:</strong> ${popularity !== undefined ? popularity.toFixed(2) : "Data not available"}</p>
+                </div>
+            `;
+        }
+
+        // Budget data
+        if (datasets.budget[countryCode]) {
+            const budget = datasets.budget[countryCode];
+            html += `
+                <div class="data-section">
+                    <h4>Trip Budget</h4>
+                    <p><strong>Average Cost:</strong> ${budget !== undefined ? "$" + budget.toFixed(0) : "Data not available"}</p>
+                </div>
+            `;
+        }
+
+        // If no data available for any dataset
+        if (!datasets.temperature[countryCode] &&
+            !datasets.popularity[countryCode] &&
+            !datasets.budget[countryCode]) {
+            html += "<p>No data available for this country</p>";
+        }
+        
+        return html;
     }
 
     // Initial map rendering with temperature data

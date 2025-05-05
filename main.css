@@ -168,15 +168,23 @@ body {
     display: block;
 }
 
-/* Selected country styling */
-.selected-country {
-    stroke: #c629f1;
-    stroke-width: 6px;
+/* Update the source and destination country styles to be more complete */
+.source-country {
+    stroke: #0066cc;
+    stroke-width: 4px;  /* Match the JavaScript value */
     stroke-linejoin: round;
     stroke-linecap: round;
     vector-effect: non-scaling-stroke;
-    fill-rule: evenodd;
 }
+
+.destination-country {
+    stroke: #cc6600; 
+    stroke-width: 4px;  /* Match the JavaScript value */
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+}
+
 .data-section {
     margin-bottom: 15px;
     padding-bottom: 10px;
@@ -212,4 +220,93 @@ body {
 
 #reset-zoom:hover {
     background-color: #f0f0f0;
+}
+
+/* Selection mode buttons */
+.selection-mode {
+    display: flex;
+    align-items: center;
+    margin-left: 15px;
+    gap: 10px;
+}
+
+.mode-button {
+    padding: 5px 10px;
+    margin: 0 5px;
+    border: 1px solid #ccc;
+    background: #f5f5f5;
+    cursor: pointer;
+}
+
+.mode-button.active {
+    background: #007bff;
+    color: white;
+    border-color: #0056b3;
+}
+
+.selection-controls {
+    margin: 15px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.selection-mode {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mode-label {
+    font-weight: 500;
+}
+
+.button-group {
+    display: flex;
+}
+
+.mode-button {
+    padding: 8px 15px;
+    border: 1px solid #ccc;
+    background: #f8f9fa;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.mode-button:first-child {
+    border-radius: 4px 0 0 4px;
+    border-right: none;
+}
+
+.mode-button:last-child {
+    border-radius: 0 4px 4px 0;
+}
+
+.mode-button.active {
+    background: #007bff;
+    color: white;
+    border-color: #0056b3;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    position: relative;
+    z-index: 1;
+}
+
+/* Trip details styling */
+.trip-details {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    border-left: 4px solid #007bff;
+}
+
+.carbon-data {
+    font-weight: bold;
+    color: #28a745;
+}
+
+.note {
+    font-style: italic;
+    font-size: 0.9em;
+    color: #6c757d;
 }
