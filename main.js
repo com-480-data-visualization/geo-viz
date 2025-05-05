@@ -24,7 +24,7 @@ svg.call(zoom); // Apply zoom behavior to the SVG
 
 // Map and projection
 const path = d3.geoPath();
-const projection = d3.geoNaturalEarth1()
+const projection = d3.geoMercator()
     .scale(140) // Adjust scale for better fit
     .center([0, 0]) // Center the map
     .translate([400, 200]); // Translate to the center of the viewBox
