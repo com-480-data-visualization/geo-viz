@@ -125,37 +125,40 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
 
     // Only add event listeners if the elements exist
     if (!sourceButton.empty()) {
-        sourceButton.on("click", function() {
-            selectionMode = 'source';
-            d3.selectAll(".mode-button").classed("active", false);
-            d3.select(this).classed("active", true);
-            
-            // Visual indicator that shows which mode is active
-            if (!modeLabel.empty()) {
-                modeLabel.text("Select Source Country:")
-                    .style("color", countryStyles.source.stroke);
-            }
-        });
+        sourceButton
+            .attr("class", "mode-button source active")  // Add 'source' class
+            .on("click", function() {
+                selectionMode = 'source';
+                d3.selectAll(".mode-button").classed("active", false);
+                d3.select(this).classed("active", true);
+                
+                // Hide or minimize the text label
+                if (!modeLabel.empty()) {
+                    modeLabel.style("display", "none");  // Hide the label completely
+                    // Or make it smaller: modeLabel.style("font-size", "0.8em").text("Source mode active");
+                }
+            });
     }
 
     if (!destinationButton.empty()) {
-        destinationButton.on("click", function() {
-            selectionMode = 'destination';
-            d3.selectAll(".mode-button").classed("active", false);
-            d3.select(this).classed("active", true);
-            
-            // Visual indicator that shows which mode is active
-            if (!modeLabel.empty()) {
-                modeLabel.text("Select Destination Country:")
-                    .style("color", countryStyles.destination.stroke);
-            }
-        });
+        destinationButton
+            .attr("class", "mode-button destination")  // Add 'destination' class
+            .on("click", function() {
+                selectionMode = 'destination';
+                d3.selectAll(".mode-button").classed("active", false);
+                d3.select(this).classed("active", true);
+                
+                // Hide or minimize the text label
+                if (!modeLabel.empty()) {
+                    modeLabel.style("display", "none");  // Hide the label completely
+                    // Or make it smaller: modeLabel.style("font-size", "0.8em").text("Destination mode active");
+                }
+            });
     }
 
-    // Set initial label only if the element exists
+    // Set initial label state
     if (!modeLabel.empty()) {
-        modeLabel.text("Select Source Country:")
-            .style("color", countryStyles.source.stroke);
+        modeLabel.style("display", "none");  // Hide initially
     }
 
     // Create selection controls if they don't exist
@@ -178,28 +181,24 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
         
         buttonGroup.append("button")
             .attr("id", "source-mode")
-            .attr("class", "mode-button active")
+            .attr("class", "mode-button source active") // Add 'source' class
             .text("Source Country")
             .on("click", function() {
                 selectionMode = 'source';
                 d3.selectAll(".mode-button").classed("active", false);
                 d3.select(this).classed("active", true);
-                d3.select(".mode-label")
-                    .text("Select Source Country:")
-                    .style("color", countryStyles.source.stroke);
+                d3.select(".mode-label").style("display", "none"); // Hide the label
             });
         
         buttonGroup.append("button")
             .attr("id", "destination-mode")
-            .attr("class", "mode-button")
+            .attr("class", "mode-button destination") // Add 'destination' class
             .text("Destination Country")
             .on("click", function() {
                 selectionMode = 'destination';
                 d3.selectAll(".mode-button").classed("active", false);
                 d3.select(this).classed("active", true);
-                d3.select(".mode-label")
-                    .text("Select Destination Country:")
-                    .style("color", countryStyles.destination.stroke);
+                d3.select(".mode-label").style("display", "none"); // Hide the label
             });
     }
 
@@ -467,40 +466,134 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
                     // Hide spinner
                     d3.select(".loading-spinner").style("display", "none");
                     
-                    // Update carbon data display
-                    d3.select(".carbon-data").html(`${carbonData.emissions} kg CO2 
+                    // Calculate round-trip emissions (double the one-way)
+                    const roundTripEmissions = carbonData.emissions * 2;
+                    
+                    // Update carbon data display to show round trip
+                    d3.select(".carbon-data").html(`${roundTripEmissions} kg CO2 (round trip)
                         ${carbonData.isEstimate ? '<span class="note">(estimated)</span>' : ''}`);
                     
                     // Add additional details
                     const tripDetails = d3.select(".trip-details");
                     
-                    // Add distance information
+                    // Add distance information (also doubled for round trip)
                     tripDetails.append("p")
-                        .html(`<span class="carbon-label">Distance:</span> ${carbonData.distance} km (${carbonData.flightType})`);
+                        .html(`<span class="carbon-label">Distance:</span> ${carbonData.distance * 2} km (${carbonData.flightType}, round trip)`);
                     
-                    // Add visualization
+                    // Add carbon budget comparison section 
+                    const annualBudget = 2000; // 2000kg CO2 sustainable annual budget per person
+                    const percentOfBudget = Math.round((roundTripEmissions / annualBudget) * 100);
+                    
+                    // Calculate max trips per year to stay within budget
+                    const maxTripsPerYear = Math.floor(annualBudget / roundTripEmissions);
+                    
+                    tripDetails.append("h4")
+                        .attr("class", "carbon-budget-title")
+                        .text("Carbon Budget Impact");
+                        
+                    tripDetails.append("p")
+                        .html(`This round trip uses <strong>${percentOfBudget}%</strong> of the recommended annual carbon budget of ${annualBudget}kg CO2 per person.`);
+                    
+                    
+                    // Add comparison bar visualization
+                    const comparisonViz = tripDetails.append("div")
+                        .attr("class", "carbon-budget-comparison");
+                    
+                    // Container for the budget bar
+                    const budgetBar = comparisonViz.append("div")
+                        .attr("class", "budget-bar-container")
+                        .style("position", "relative")
+                        .style("height", "30px")
+                        .style("width", "100%")
+                        .style("background-color", "#e0e0e0")
+                        .style("border-radius", "4px")
+                        .style("margin", "10px 0");
+                    
+                    // Flight's portion of annual budget
+                    budgetBar.append("div")
+                        .attr("class", "flight-portion")
+                        .style("position", "absolute")
+                        .style("height", "100%")
+                        .style("width", `${Math.min(percentOfBudget, 100)}%`)
+                        .style("background-color", percentOfBudget > 50 ? "#d32f2f" : "#ff9800")
+                        .style("border-radius", "4px 0 0 4px")
+                        .style("transition", "width 0.5s ease-in-out");
+                    
+                    // Labels for the visualization
+                    comparisonViz.append("div")
+                        .attr("class", "budget-labels")
+                        .style("display", "flex")
+                        .style("justify-content", "space-between")
+                        .style("margin-top", "5px")
+                        .html(`
+                            <span>0%</span>
+                            <span>50%</span>
+                            <span>100% of annual budget</span>
+                        `);
+                    
+                    // Add "Max Trips" visual representation
+                    const maxTripsViz = tripDetails.append("div")
+                        .attr("class", "max-trips-viz")
+                        .style("margin-top", "20px");
+                    
+                    maxTripsViz.append("h5")
+                        .style("margin", "0 0 10px 0")
+                        .text("Maximum Round Trips Per Year");
+                    
+                    const tripIcons = maxTripsViz.append("div")
+                        .attr("class", "trip-icons")
+                        .style("display", "flex")
+                        .style("gap", "5px")
+                        .style("flex-wrap", "wrap");
+                    
+                    // Show plane icons representing each possible trip (up to 10)
+                    const displayLimit = Math.min(maxTripsPerYear, 10); // Limit display to 10 icons
+                    
+                    for (let i = 0; i < displayLimit; i++) {
+                        tripIcons.append("div")
+                            .attr("class", "trip-icon")
+                            .style("width", "30px")
+                            .style("height", "30px")
+                            .style("background-color", "#007bff")
+                            .style("border-radius", "50%")
+                            .style("display", "flex")
+                            .style("align-items", "center")
+                            .style("justify-content", "center")
+                            .style("color", "white")
+                            .style("font-weight", "bold")
+                            .text("✈️");
+                    }
+                    
+                    // If there are more than the display limit, show a +X more indicator
+                    if (maxTripsPerYear > displayLimit) {
+                        tripIcons.append("div")
+                            .attr("class", "more-trips")
+                            .style("padding", "5px 8px")
+                            .style("background-color", "#eee")
+                            .style("border-radius", "15px")
+                            .style("font-size", "12px")
+                            .style("color", "#555")
+                            .text(`+${maxTripsPerYear - displayLimit} more`);
+                    }
+                    
+                    // Color-coded recommendation based on number of trips 
+                    const recommendationColor = maxTripsPerYear < 1 ? "#d32f2f" : 
+                                                (maxTripsPerYear < 3 ? "#ff9800" : "#4caf50");
+                    
+                    const recommendationText = maxTripsPerYear < 1 ? 
+                                              "This destination exceeds your annual sustainable carbon budget." : 
+                                              (maxTripsPerYear < 3 ? 
+                                               "Consider visiting this destination less frequently or staying longer." : 
+                                               "This destination can be visited sustainably within your annual carbon budget.");
+                    
                     tripDetails.append("div")
-                        .attr("class", "carbon-visualization")
-                        .append("div")
-                        .attr("class", "carbon-bar")
-                        .style("width", `${Math.min(carbonData.emissions/20, 100)}%`);
-                    
-                    // Add context information
-                    tripDetails.append("p")
-                        .attr("class", "carbon-context")
-                        .text("Environmental impact equivalent to:");
-                    
-                    const equivalentsList = tripDetails.append("ul")
-                        .attr("class", "carbon-equivalents");
-                    
-                    equivalentsList.append("li")
-                        .text(`${Math.round(carbonData.emissions/2.5)} km driven by an average car`);
-                    
-                    equivalentsList.append("li")
-                        .text(`${Math.round(carbonData.emissions/8.9)} hours of air conditioning`);
-                    
-                    equivalentsList.append("li")
-                        .text(`${Math.round(carbonData.emissions/50)} trees needed to absorb this CO2 over one year`);
+                        .attr("class", "carbon-recommendation-box")
+                        .style("margin-top", "15px")
+                        .style("padding", "12px")
+                        .style("border-radius", "4px")
+                        .style("border-left", `4px solid ${recommendationColor}`)
+                        .style("background-color", "#f9f9f9")
+                        .html(`<p style="margin: 0; color: ${recommendationColor}; font-weight: 500;">${recommendationText}</p>`);
                 })
                 .catch(error => {
                     console.error("Error calculating carbon:", error);
@@ -575,8 +668,40 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
             .duration(750)
             .call(zoom.transform, d3.zoomIdentity);
     });
-});
 
+    // Create the selection controls in the info panel
+    const controls = createSelectionControlsInPanel();
+    
+    // Add country click handler to select countries
+    g.selectAll("path")
+        .on("click", function(event, d) {
+            // Remove existing hover styling
+            d3.select(this)
+                .attr("stroke", null)
+                .attr("stroke-width", null);
+            
+            // Call the selectCountry function with the country data
+            selectCountry(event, d, "temperature");  // Pass the event, country data, and a default dataset
+        });
+    
+    // Remove any old event handlers to avoid duplicates
+    d3.selectAll(".mode-button").on("click", null);
+    
+    // Reattach the event handlers
+    controls.sourceButton.on("click", function() {
+        selectionMode = 'source';
+        d3.selectAll(".mode-button").classed("active", false);
+        d3.select(this).classed("active", true);
+        console.log("Selection mode set to source");
+    });
+    
+    controls.destinationButton.on("click", function() {
+        selectionMode = 'destination';
+        d3.selectAll(".mode-button").classed("active", false);
+        d3.select(this).classed("active", true);
+        console.log("Selection mode set to destination");
+    });
+});
 
 // Simple fallback estimation based on distance
 function estimateCarbonEmissions(sourceCountry, destCountry) {
@@ -597,8 +722,6 @@ function estimateCarbonEmissions(sourceCountry, destCountry) {
         isEstimate: true
     };
 }
-
-
 
 // Helper function to load ISO3 to ISO2 country code mapping
 async function loadISO3To2Mapping() {
@@ -884,4 +1007,65 @@ function getAirportCode(countryCode) {
     };
     
     return airportMap[countryCode] || countryCode;
+}
+
+// Create selection controls in the info panel
+function createSelectionControlsInPanel() {
+    // Clean up any existing controls first
+    d3.selectAll(".selection-controls").remove();
+    
+    // Select the info panel
+    const infoPanel = d3.select(".info-panel");
+    if (infoPanel.empty()) {
+        console.error("Info panel not found");
+        return { sourceButton: null, destinationButton: null };  // Return empty object as fallback
+    }
+    
+    // Create a container for the selection controls at the top of the panel
+    const selectionControls = infoPanel.insert("div", ":first-child")
+        .attr("class", "selection-controls panel-controls")
+        .style("margin-bottom", "20px");
+    
+    // Add a title
+    selectionControls.append("h3")
+        .text("Select Countries")
+        .style("margin-top", "0")
+        .style("margin-bottom", "10px");
+    
+    // Create the button group
+    const buttonGroup = selectionControls.append("div")
+        .attr("class", "button-group");
+    
+    // Create the source button
+    const sourceButton = buttonGroup.append("button")
+        .attr("id", "source-mode")
+        .attr("class", "mode-button source active")
+        .text("Source Country")
+        .on("click", function() {
+            selectionMode = 'source';
+            d3.selectAll(".mode-button").classed("active", false);
+            d3.select(this).classed("active", true);
+            console.log("Selection mode set to source");
+        });
+    
+    // Create the destination button
+    const destinationButton = buttonGroup.append("button")
+        .attr("id", "destination-mode")
+        .attr("class", "mode-button destination")
+        .text("Destination Country")
+        .on("click", function() {
+            selectionMode = 'destination';
+            d3.selectAll(".mode-button").classed("active", false);
+            d3.select(this).classed("active", true);
+            console.log("Selection mode set to destination");
+        });
+    
+    // Remove any old selection controls from other places
+    d3.select(".selection-controls:not(.panel-controls)").remove();
+    
+    // Return the buttons for further reference
+    return {
+        sourceButton: sourceButton,
+        destinationButton: destinationButton
+    };
 }

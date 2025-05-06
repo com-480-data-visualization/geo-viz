@@ -130,6 +130,7 @@ body {
     justify-content: flex-start;
     align-items: flex-start;
     border-left: 1px solid #ddd;
+    padding-top: 15px;
 }
 
 .info-panel h2 {
@@ -231,11 +232,14 @@ body {
 }
 
 .mode-button {
-    padding: 5px 10px;
+    padding: 8px 15px;
     margin: 0 5px;
-    border: 1px solid #ccc;
-    background: #f5f5f5;
+    border: 2px solid #ccc;
+    background-color: #f8f8f8;
+    border-radius: 5px;
     cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
 }
 
 .mode-button.active {
@@ -282,13 +286,28 @@ body {
     border-radius: 0 4px 4px 0;
 }
 
-.mode-button.active {
-    background: #007bff;
-    color: white;
-    border-color: #0056b3;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-    position: relative;
-    z-index: 1;
+
+
+/* Default state - subtle styling */
+.mode-button:hover {
+    border-color: #999;
+    background-color: #eee;
+}
+
+/* Source button when active */
+.mode-button.source.active {
+    border-color: #0066cc;
+    background-color: rgba(0, 102, 204, 0.1);
+    color: #0066cc;
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+}
+
+/* Destination button when active */
+.mode-button.destination.active {
+    border-color: #cc6600;
+    background-color: rgba(204, 102, 0, 0.1);
+    color: #cc6600;
+    box-shadow: 0 0 0 2px rgba(204, 102, 0, 0.2);
 }
 
 /* Trip details styling */
@@ -370,4 +389,115 @@ body {
 .carbon-value {
     font-weight: bold;
     color: #28a745;
+}
+
+/* Panel selection controls styling */
+.panel-controls {
+    width: 100%;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.panel-controls .button-group {
+    display: flex;
+    width: 100%;
+}
+
+.panel-controls .mode-button {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border: 1px solid #ddd;
+    background-color: #f8f8f8;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.panel-controls .mode-button:first-child {
+    border-radius: 4px 0 0 4px;
+}
+
+.panel-controls .mode-button:last-child {
+    border-radius: 0 4px 4px 0;
+}
+
+/* Keep the specific active styles for source and destination */
+.panel-controls .mode-button.source.active {
+    border-color: #0066cc;
+    background-color: rgba(0, 102, 204, 0.1);
+    color: #0066cc;
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+}
+
+.panel-controls .mode-button.destination.active {
+    border-color: #cc6600;
+    background-color: rgba(204, 102, 0, 0.1);
+    color: #cc6600;
+    box-shadow: 0 0 0 2px rgba(204, 102, 0, 0.2);
+}
+
+/* Make the right panel more organized */
+.info-panel {
+    display: flex;
+    flex-direction: column;
+    padding-top: 15px;
+}
+
+/* Update the title styling */
+.panel-controls h3 {
+    color: #333;
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+}
+
+/* Add to your CSS file */
+.carbon-budget-title {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.carbon-budget-comparison {
+    margin: 15px 0;
+}
+
+.budget-bar-container {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.flight-portion {
+    transition: width 0.5s ease-in-out;
+}
+
+.budget-labels {
+    color: #555;
+    font-size: 12px;
+}
+
+.max-trips-info {
+    background-color: #f3f9ff;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 12px;
+    border-left: 3px solid #4dabf7;
+}
+
+.carbon-recommendation {
+    font-weight: 500;
+}
+
+.trip-icons {
+    margin: 10px 0 15px 0;
+}
+
+.trip-icon {
+    animation: bounce 1s ease infinite;
+    animation-delay: calc(var(--i, 0) * 0.1s);
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
 }
