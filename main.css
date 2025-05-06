@@ -310,3 +310,64 @@ body {
     font-size: 0.9em;
     color: #6c757d;
 }
+
+/* Loading spinner for API calls */
+.loading-spinner {
+    width: 30px;
+    height: 30px;
+    margin: 10px auto;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Carbon visualization styles */
+.carbon-visualization {
+    width: 100%;
+    height: 15px;
+    background-color: #f0f0f0;
+    margin: 10px 0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.carbon-bar {
+    height: 100%;
+    background: linear-gradient(to right, #28a745, #ffc107, #dc3545);
+    border-radius: 10px 0 0 10px;
+    transition: width 0.5s ease-in-out;
+}
+
+.carbon-context {
+    font-weight: 500;
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+
+.carbon-equivalents {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.carbon-equivalents li {
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.carbon-label {
+    font-weight: bold;
+    color: #444;
+    margin-right: 5px;
+}
+
+.carbon-value {
+    font-weight: bold;
+    color: #28a745;
+}

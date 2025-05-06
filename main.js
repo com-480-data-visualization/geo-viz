@@ -16,8 +16,8 @@ const zoom = d3.zoom()
         g.attr("transform", event.transform);
 
         // Adjust stroke width based on zoom level but maintain styles
-        const sourceStrokeWidth = countryStyles.source.strokeWidth / event.transform.k;
-        const destStrokeWidth = countryStyles.destination.strokeWidth / event.transform.k;
+        const sourceStrokeWidth = "4px";
+        const destStrokeWidth = "4px";
         
         g.selectAll("path.source-country")
             .attr("stroke-width", sourceStrokeWidth);
@@ -41,6 +41,12 @@ const colorScales = {
     popularity: d3.scaleSymlog().interpolate(d3.interpolateHcl).range(["#ccc", "#1a9850"]), // Green for tourism popularity
     budget: d3.scaleLog().interpolate(d3.interpolateHcl).range(["#1a9850", "#d73027"]) // Green for low budget, red for high budget
 };
+
+// Add these variables at the top of your file (after the svg and projection definitions)
+// Global variables for airport data
+let airportDataLoaded = false;
+let airportDataPromise = null;
+let countryToAirport = {}; // Will be populated with country code -> airport code mapping
 
 // Load data through promises
 const map_promise = d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
@@ -413,14 +419,14 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
            );
     }
 
-    // Function to update the country details panel
+    // Function to update the country details panel with carbon data
     function updateCountryDetails(selectedDataset) {
         let detailHTML = '';
         
         // Source country section
         if (selectedCountries.source) {
             detailHTML += `<h3>From: ${selectedCountries.source.name}</h3>`;
-            detailHTML += generateCountryDataHTML(selectedCountries.source.code);
+            detailHTML += generateCountryDataHTML(selectedCountries.source.code, selectedDataset);
         } else {
             detailHTML += `<h3>Select Source Country</h3>
                           <p>Click on a country after selecting the "Source" mode</p>`;
@@ -429,36 +435,86 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
         // Destination country section
         if (selectedCountries.destination) {
             detailHTML += `<h3>To: ${selectedCountries.destination.name}</h3>`;
-            detailHTML += generateCountryDataHTML(selectedCountries.destination.code);
-            
-            // Add section for trip details (carbon footprint placeholder)
-            if (selectedCountries.source) {
-                detailHTML += `
-                    <div class="trip-details">
-                        <h3>Trip Information</h3>
-                        <p>From ${selectedCountries.source.name} to ${selectedCountries.destination.name}</p>
-                        <p><strong>Carbon Footprint:</strong> <span class="carbon-data">Calculating...</span></p>
-                        <p class="note">Carbon footprint data will be available in the next update.</p>
-                    </div>
-                `;
-            }
+            detailHTML += generateCountryDataHTML(selectedCountries.destination.code, selectedDataset);
         } else {
             detailHTML += `<h3>Select Destination Country</h3>
                           <p>Click on a country after selecting the "Destination" mode</p>`;
         }
         
-        // Update the existing country-details div
-        d3.select(".country-details").html(detailHTML);
-        
-        // If both countries are selected, we could call the carbon emissions API here in the future
+        // Trip section if both countries are selected
         if (selectedCountries.source && selectedCountries.destination) {
-            // Placeholder for future API call:
-            // calculateCarbonEmissions(selectedCountries.source.code, selectedCountries.destination.code);
+            detailHTML += `
+                <div class="trip-details">
+                    <h3>Trip Carbon Footprint</h3>
+                    <p>Flight from ${selectedCountries.source.name} to ${selectedCountries.destination.name}</p>
+                    <p class="carbon-info">
+                        <span class="carbon-label">CO2 Emissions:</span>
+                        <span class="carbon-data">Calculating...</span>
+                        <span class="loading-spinner"></span>
+                    </p>
+                    <p class="note">Data provided by Carbon Interface API</p>
+                </div>
+            `;
+            
+            // Update the DOM first with loading state
+            d3.select(".country-details").html(detailHTML);
+            
+            // Make the API call
+            calculateCarbonEmissions(selectedCountries.source, selectedCountries.destination)
+                .then(carbonData => {
+                    if (!carbonData) return;
+                    
+                    // Hide spinner
+                    d3.select(".loading-spinner").style("display", "none");
+                    
+                    // Update carbon data display
+                    d3.select(".carbon-data").html(`${carbonData.emissions} kg CO2 
+                        ${carbonData.isEstimate ? '<span class="note">(estimated)</span>' : ''}`);
+                    
+                    // Add additional details
+                    const tripDetails = d3.select(".trip-details");
+                    
+                    // Add distance information
+                    tripDetails.append("p")
+                        .html(`<span class="carbon-label">Distance:</span> ${carbonData.distance} km (${carbonData.flightType})`);
+                    
+                    // Add visualization
+                    tripDetails.append("div")
+                        .attr("class", "carbon-visualization")
+                        .append("div")
+                        .attr("class", "carbon-bar")
+                        .style("width", `${Math.min(carbonData.emissions/20, 100)}%`);
+                    
+                    // Add context information
+                    tripDetails.append("p")
+                        .attr("class", "carbon-context")
+                        .text("Environmental impact equivalent to:");
+                    
+                    const equivalentsList = tripDetails.append("ul")
+                        .attr("class", "carbon-equivalents");
+                    
+                    equivalentsList.append("li")
+                        .text(`${Math.round(carbonData.emissions/2.5)} km driven by an average car`);
+                    
+                    equivalentsList.append("li")
+                        .text(`${Math.round(carbonData.emissions/8.9)} hours of air conditioning`);
+                    
+                    equivalentsList.append("li")
+                        .text(`${Math.round(carbonData.emissions/50)} trees needed to absorb this CO2 over one year`);
+                })
+                .catch(error => {
+                    console.error("Error calculating carbon:", error);
+                    d3.select(".loading-spinner").style("display", "none");
+                    d3.select(".carbon-data").text("Calculation failed");
+                });
+        } else {
+            // Update the DOM for cases where both countries aren't selected
+            d3.select(".country-details").html(detailHTML);
         }
     }
 
     // Function to generate HTML for country data section
-    function generateCountryDataHTML(countryCode) {
+    function generateCountryDataHTML(countryCode, selectedDataset) {
         let html = '';
         
         // Temperature data
@@ -520,3 +576,312 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
             .call(zoom.transform, d3.zoomIdentity);
     });
 });
+
+
+// Simple fallback estimation based on distance
+function estimateCarbonEmissions(sourceCountry, destCountry) {
+    // Calculate distance between country centroids
+    const sourceCentroid = d3.geoCentroid(sourceCountry.country);
+    const destCentroid = d3.geoCentroid(destCountry.country);
+    const distance = d3.geoDistance(sourceCentroid, destCentroid) * 6371; // Earth radius in km
+    
+    // Simple emissions calculation (kg CO2 per passenger km)
+    const emissionFactor = distance < 1500 ? 0.15 : (distance < 4000 ? 0.12 : 0.11);
+    const emissions = distance * emissionFactor;
+    
+    return {
+        distance: Math.round(distance),
+        emissions: Math.round(emissions * 10) / 10,
+        sourceAirport: getAirportCode(sourceCountry.code),
+        destAirport: getAirportCode(destCountry.code),
+        isEstimate: true
+    };
+}
+
+
+
+// Helper function to load ISO3 to ISO2 country code mapping
+async function loadISO3To2Mapping() {
+    try {
+        const response = await fetch('https://raw.githubusercontent.com/lukes/ISO-3166-Countries-with-Regional-Codes/master/slim-2/slim-2.json');
+        const countries = await response.json();
+        
+        const mapping = {};
+        countries.forEach(country => {
+            mapping[country['alpha-3']] = country['alpha-2'];
+            // Also map by country name for flexibility
+            mapping[country.name] = country['alpha-2'];
+        });
+        
+        return mapping;
+    } catch (error) {
+        console.error('Error loading ISO code mapping:', error);
+        return {};
+    }
+}
+
+// Load airport data at the beginning of your app
+countryToAirport = {}; // Will be populated with country code -> airport code mapping
+
+// Load the airport data at startup
+loadAirportData().then(data => {
+    countryToAirport = data;
+    console.log("Airport data loaded");
+});
+
+// Updated loadAirportData function that returns a promise
+function loadAirportData() {
+    // Only load once
+    if (airportDataPromise) {
+        return airportDataPromise;
+    }
+    
+    // Create and store the promise
+    airportDataPromise = new Promise(async (resolve) => {
+        try {
+            console.log("Loading airport data...");
+            const response = await fetch('https://raw.githubusercontent.com/jpatokal/openflights/master/data/airports.dat');
+            const text = await response.text();
+            
+            // Process CSV-like data
+            const airports = [];
+            text.split('\n').forEach(line => {
+                if (!line) return;
+                // Parse the comma-separated values (handling quoted fields)
+                const fields = line.match(/("([^"]*)"|([^,]*))(,|$)/g)?.map(field => {
+                    return field.replace(/(^,|,$)/g, '').replace(/^"(.*)"$/, '$1');
+                });
+                
+                if (fields && fields.length >= 8) {
+                    airports.push({
+                        id: fields[0],
+                        name: fields[1],
+                        city: fields[2],
+                        country: fields[3],
+                        iata: fields[4] !== '\\N' ? fields[4] : null,
+                        icao: fields[5] !== '\\N' ? fields[5] : null,
+                        latitude: parseFloat(fields[6]),
+                        longitude: parseFloat(fields[7]),
+                        altitude: parseInt(fields[8]),
+                        size: parseInt(fields[9] || 0) // Use size/importance metric
+                    });
+                }
+            });
+            
+            // Create a map of countries to their major airports
+            const countryAirports = {};
+            
+            // Group airports by country
+            const airportsByCountry = {};
+            airports.forEach(airport => {
+                if (!airport.iata) return; // Skip airports without IATA codes
+                
+                const countryName = airport.country;
+                if (!airportsByCountry[countryName]) {
+                    airportsByCountry[countryName] = [];
+                }
+                airportsByCountry[countryName].push(airport);
+            });
+            
+            // For each country, find the largest/most important airport
+            Object.keys(airportsByCountry).forEach(countryName => {
+                // Sort by international status, size, and other factors
+                const sortedAirports = airportsByCountry[countryName].sort((a, b) => {
+                    // First, prioritize airports with "International" in the name
+                    const aIsIntl = a.name.toLowerCase().includes('international');
+                    const bIsIntl = b.name.toLowerCase().includes('international');
+                    if (aIsIntl && !bIsIntl) return -1;
+                    if (!aIsIntl && bIsIntl) return 1;
+                    
+                    // Next, prioritize by size if available
+                    if (a.size && b.size && a.size !== b.size) {
+                        return b.size - a.size;
+                    }
+                    
+                    // Finally, prefer capital city airports
+                    const capitalCities = ['london', 'paris', 'berlin', 'madrid', 'rome', 'washington', 'beijing', 'tokyo'];
+                    const aIsCapital = capitalCities.some(capital => a.city.toLowerCase().includes(capital));
+                    const bIsCapital = capitalCities.some(capital => b.city.toLowerCase().includes(capital));
+                    if (aIsCapital && !bIsCapital) return -1;
+                    if (!aIsCapital && bIsCapital) return 1;
+                    
+                    return 0;
+                });
+                
+                if (sortedAirports.length > 0) {
+                    // Store by country name
+                    countryAirports[countryName] = sortedAirports[0].iata;
+                    
+                    // Also try to map to ISO3 codes using a basic mapping
+                    // This is just a basic example - you'd need a more comprehensive mapping
+                    const iso3Mapping = {
+                        'United States': 'USA',
+                        'United Kingdom': 'GBR',
+                        'France': 'FRA',
+                        'Germany': 'DEU',
+                        'China': 'CHN',
+                        'Japan': 'JPN',
+                        'Algeria': 'DZA',
+                        // Add more as needed
+                    };
+                    
+                    if (iso3Mapping[countryName]) {
+                        countryAirports[iso3Mapping[countryName]] = sortedAirports[0].iata;
+                    }
+                }
+            });
+            
+            console.log(`Loaded airports for ${Object.keys(countryAirports).length} countries`);
+            airportDataLoaded = true;
+            resolve(countryAirports);
+        } catch (error) {
+            console.error('Error loading airport data:', error);
+            airportDataLoaded = false;
+            resolve({}); // Resolve with empty object on error
+        }
+    });
+    
+    return airportDataPromise;
+}
+
+// Updated Carbon Interface API function
+async function calculateCarbonEmissions(sourceCountry, destCountry) {
+    if (!sourceCountry || !destCountry) return null;
+    
+    try {
+        // First check hardcoded mapping - prioritize these over dynamic data
+        const hardcodedAirports = getAirportCode(sourceCountry.code);
+        const hardcodedDestination = getAirportCode(destCountry.code);
+        
+        // Start with hardcoded values for major countries
+        let sourceAirport = hardcodedAirports;
+        let destAirport = hardcodedDestination;
+        
+        // Only use dynamic data if hardcoded mapping didn't work
+        if (sourceAirport === sourceCountry.code || destAirport === destCountry.code) {
+            // Make sure airport data is loaded
+            if (!airportDataLoaded) {
+                countryToAirport = await loadAirportData();
+            }
+            
+            // Only override sourceAirport if it wasn't already matched
+            if (sourceAirport === sourceCountry.code) {
+                sourceAirport = countryToAirport[sourceCountry.name] || 
+                                countryToAirport[sourceCountry.code] ||
+                                sourceCountry.code;  
+            }
+            
+            // Only override destAirport if it wasn't already matched
+            if (destAirport === destCountry.code) {
+                destAirport = countryToAirport[destCountry.name] || 
+                             countryToAirport[destCountry.code] ||
+                             destCountry.code;
+            }
+        }
+        
+        // Log the resolution process
+        console.log(`Country codes: ${sourceCountry.code} → ${destCountry.code}`);
+        console.log(`Using airports: ${sourceAirport} → ${destAirport}`);
+        
+        // If we can't resolve both airports, fall back to estimation
+        if (!sourceAirport || !destAirport) {
+            console.warn("Could not resolve airport codes, using fallback estimation");
+            return estimateCarbonEmissions(sourceCountry, destCountry); 
+        }
+        
+        // Continue with the API call using the resolved airport codes
+        const payload = {
+            "type": "flight",
+            "passengers": 1,
+            "legs": [
+                {
+                    "departure_airport": sourceAirport,
+                    "destination_airport": destAirport
+                }
+            ]
+        };
+        
+        // Rest of your existing API call code...
+        const response = await fetch('https://www.carboninterface.com/api/v1/estimates', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer W3pfo842IxX3bhoQ3j40wQ',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`API response error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Carbon API response:', data);
+        
+        return {
+            distance: Math.round(data.data.attributes.distance_value || 0),
+            emissions: Math.round(data.data.attributes.carbon_kg * 10) / 10,
+            flightType: data.data.attributes.distance_value < 1500 ? 'short-haul' : 
+                      (data.data.attributes.distance_value < 4000 ? 'medium-haul' : 'long-haul'),
+            sourceAirport: sourceAirport,
+            destAirport: destAirport
+        };
+    } catch (error) {
+        console.error('Error calculating carbon emissions:', error);
+        return estimateCarbonEmissions(sourceCountry, destCountry);
+    }
+}
+
+// Update where you start loading airport data
+// Initialize immediately so it's ready when needed
+loadAirportData().then(data => {
+    countryToAirport = data;
+    console.log("Airport data loaded successfully:", Object.keys(data).length, "countries mapped");
+}).catch(error => {
+    console.error("Failed to load airport data:", error);
+});
+
+// Simplified airport code mapping using CCA3 country codes
+function getAirportCode(countryCode) {
+    const airportMap = {
+        // Europe
+        "GBR": "LHR", // London Heathrow (not Belfast)
+        "UKR": "KBP", // Kyiv Boryspil (not Simferopol)
+        "FRA": "CDG", // Paris Charles de Gaulle
+        "DEU": "FRA", // Frankfurt
+        "ITA": "FCO", // Rome Fiumicino
+        "ESP": "MAD", // Madrid Barajas
+        "NLD": "AMS", // Amsterdam Schiphol
+        
+        // North America
+        "USA": "JFK", // New York JFK
+        "CAN": "YYZ", // Toronto
+        "MEX": "MEX", // Mexico City
+        
+        // Asia
+        "CHN": "PEK", // Beijing
+        "JPN": "HND", // Tokyo Haneda
+        "IND": "DEL", // Delhi
+        "THA": "BKK", // Bangkok
+        "SGP": "SIN", // Singapore Changi
+        
+        // Middle East & Africa
+        "ARE": "DXB", // Dubai
+        "ZAF": "JNB", // Johannesburg
+        "EGY": "CAI", // Cairo
+        "DZA": "ALG", // Algiers
+        "MAR": "CMN", // Casablanca
+        
+        // South America
+        "BRA": "GRU", // São Paulo
+        "ARG": "EZE", // Buenos Aires
+        "CHL": "SCL", // Santiago
+        "COL": "BOG", // Bogotá
+        
+        // Oceania
+        "AUS": "SYD", // Sydney
+        "NZL": "AKL"  // Auckland
+    };
+    
+    return airportMap[countryCode] || countryCode;
+}
