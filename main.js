@@ -297,4 +297,48 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
             .duration(750)
             .call(zoom.transform, d3.zoomIdentity);
     });
+
+    // Update the search functionality to display country details upon confirmation
+    let searchTimeout;
+    d3.select("#country-search").on("input", function () {
+        const searchTerm = this.value.toLowerCase();
+
+        // Clear any existing timeout to debounce user input
+        clearTimeout(searchTimeout);
+
+        // Only proceed if the user has entered more than one character
+        if (searchTerm.length > 1) {
+            searchTimeout = setTimeout(() => {
+                // Filter matching countries
+                const matchingCountries = topo
+                    .filter((d) => d.properties.name.toLowerCase().includes(searchTerm))
+                    .map((d) => d.properties.name);
+
+                // Populate the dropdown list
+                const dropdown = d3.select("#country-dropdown");
+                dropdown.style("display", matchingCountries.length ? "block" : "none");
+                dropdown.selectAll("li").remove();
+                dropdown.selectAll("li")
+                    .data(matchingCountries)
+                    .enter()
+                    .append("li")
+                    .text((d) => d)
+                    .on("click", function (event, countryName) {
+                        // Find the selected country
+                        const selectedCountry = topo.find((d) => d.properties.name === countryName);
+                        if (selectedCountry) {
+                            centerOnCountry(selectedCountry);
+                            selectCountry(event, selectedCountry, "temperature"); // Display details
+                        }
+
+                        // Hide the dropdown and clear the search input
+                        dropdown.style("display", "none");
+                        d3.select("#country-search").property("value", countryName);
+                    });
+            }, 300); // Debounce delay of 300ms
+        } else {
+            // Hide the dropdown if input is cleared or too short
+            d3.select("#country-dropdown").style("display", "none");
+        }
+    });
 });

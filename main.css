@@ -213,3 +213,46 @@ body {
 #reset-zoom:hover {
     background-color: #f0f0f0;
 }
+
+.search-container {
+    position: relative;
+    margin: 0 auto;
+    text-align: center;
+    width: 60%; 
+}
+
+#country-search {
+    width: 80%;
+    padding: 8px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.dropdown-list {
+    position: absolute; 
+    top: 100%; 
+    left: 0; 
+    width: 150%; 
+    transform: none;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: white;
+    z-index: 1000;
+    display: none;
+}
+
+.dropdown-list li {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.dropdown-list li:hover {
+    background-color: #f0f0f0;
+}
