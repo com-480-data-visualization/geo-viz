@@ -1,40 +1,19 @@
+import WorldMap from './js/WorldMap.js';
+
 // Smooth scrolling to the map section
-d3.select("#start-button").on("click", () =>
-    d3.select(".map-section").node().scrollIntoView({ behavior: "smooth" })
-);
+d3.select("#start-button").on("click", () => {
+    // Show the map section first (so we can scroll to it)
+    d3.select('.map-section').style('display', 'flex');
 
-// The svg
-const svg = d3.select("svg#world_map")
-    .attr("viewBox", `0 0 800 400`) // Set the viewBox to match the map's dimensions
-    .attr("preserveAspectRatio", "xMidYMid meet"); // Ensure the map scales properly
+    // Scroll to map section smoothly
+    d3.select('.map-section').node().scrollIntoView({ behavior: "smooth" });
 
-const g = svg.append("g");
+    // Wait ~500ms (scroll duration) before hiding the home page
+    setTimeout(() => {
+        d3.select('.home-page').style('display', 'none');
+    }, 600); // Adjust if needed
+});
 
-const zoom = d3.zoom()
-    .scaleExtent([1, 8]) // Set zoom limits
-    .on("zoom", (event) => {
-        g.attr("transform", event.transform); // Apply zoom transformation
-
-        const strokeWidth = 1.5 / event.transform.k;
-        g.selectAll("path.selected-country")
-            .attr("stroke-width", strokeWidth);
-    });
-
-svg.call(zoom); // Apply zoom behavior to the SVG 
-
-// Map and projection
-const path = d3.geoPath();
-const projection = d3.geoMercator()
-    .scale(140) // Adjust scale for better fit
-    .center([0, 0]) // Center the map
-    .translate([400, 200]); // Translate to the center of the otate([0, 0])viewBox
-
-// Define color scales for each dataset
-const colorScales = {
-    temperature: d3.scaleDiverging((t) => d3.interpolateRdBu(1 - t)), // Red for warm, blue for cold
-    popularity: d3.scaleSymlog().interpolate(d3.interpolateHcl).range(["#ccc", "#1a9850"]), // Green for tourism popularity
-    budget: d3.scaleLog().interpolate(d3.interpolateHcl).range(["#1a9850", "#d73027"]) // Green for low budget, red for high budget
-};
 
 // Load data through promises
 const map_promise = d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
@@ -69,233 +48,55 @@ const budget_promise = d3.csv("https://raw.githubusercontent.com/com-480-data-vi
         });
         return budget_data;
     });
+const hotels_promise = d3.csv("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/hotels.csv")
+    .then((data) => {
+        let hotels_data = {};
+        data.forEach((row) => {
+            hotels_data[row["Code"]] = parseFloat(row["Hotel guests"]);
+        });
+        return hotels_data;
+    });
+const natural_sites_promise = d3.csv("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/natural_sites.csv")
+    .then((data) => {
+        let natural_sites_data = {};
+        data.forEach((row) => {
+            natural_sites_data[row["Code"]] = parseFloat(row["Natural sites"]);
+        });
+        return natural_sites_data;
+    });
+const cultural_sites_promise = d3.csv("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/cultural_sites.csv")
+    .then((data) => {
+        let cultural_sites_data = {};
+        data.forEach((row) => {
+            cultural_sites_data[row["Code"]] = parseFloat(row["Cultural sites"]);
+        });
+        return cultural_sites_data;
+    });
 
 // Draw map when promises return
-Promise.all([map_promise, temperature_promise, popularity_promise, budget_promise]).then((results) => {
+Promise.all([map_promise, temperature_promise, popularity_promise, budget_promise,
+    hotels_promise, natural_sites_promise, cultural_sites_promise
+]).then((results) => {
     console.log("Data loaded");
     let topo = results[0];
     let datasets = {
         temperature: results[1],
         popularity: results[2],
-        budget: results[3]
-    };
-    let titles = {
-        temperature: "Global Temperature Map",
-        popularity: "Tourism Popularity Map",
-        budget: "Trip Budget Map"
+        budget: results[3],
+        hotels: results[4],
+        natural_sites: results[5],
+        cultural_sites: results[6]
     };
 
-    let currentMonth = 1; // Default month for temperature map
-    // Add slider for temperature map below the map title
-    const slider = d3.select(".map-container")
-        .append("input")
-        .attr("type", "range")
-        .attr("min", 1)
-        .attr("max", 12)
-        .attr("value", currentMonth)
-        .attr("step", 1)
-        .attr("class", "month-slider");
-
-    slider.on("input", function () {
-        currentMonth = +this.value; // Update the current month
-        updateMap("temperature"); // Re-render the temperature map
-    });
-
-    // Function to update the map based on the selected dataset
-    function updateMap(selectedDataset) {
-        let data = datasets[selectedDataset];
-        let scale = colorScales[selectedDataset];
-
-        // Set the domain of the scale based on the dataset
-        let minValue, maxValue, midValue;
-        if (selectedDataset === "temperature") {
-            minValue = d3.min(Object.values(data), (d) => d[currentMonth]);
-            maxValue = d3.max(Object.values(data), (d) => d[currentMonth]);
-            midValue = (minValue + maxValue) / 2; // Use the midpoint for divergence
-            scale.domain([minValue, midValue, maxValue]);
-        } else {
-            minValue = d3.min(Object.values(data));
-            maxValue = d3.max(Object.values(data));
-            scale.domain([minValue, maxValue]);
-        }
-
-        // Update map title
-        const title = titles[selectedDataset];
-        d3.select("#map-title").text(
-            selectedDataset === "temperature"
-                ? `${title} (Month: ${currentMonth})`
-                : title
-        );
-
-        // Update the map
-        g.selectAll("path")
-            .data(topo)
-            .join("path")
-            .attr("d", d3.geoPath().projection(projection))
-            .attr("fill", function (d) {
-                const value =
-                    selectedDataset === "temperature"
-                        ? data[d.id]?.[currentMonth]
-                        : data[d.id];
-                return value ? scale(value) : "#ccc"; // Default color for missing data
-            })
-            .on("click", function (event, d) {
-                selectCountry(event, d, selectedDataset);
-                centerOnCountry(d);
-            })
-            .on("mouseover", function (event, d) {
-                d3.select(this)
-                    .attr("stroke", "#333")
-                    .attr("stroke-width", "4px")
-                    .attr("cursor", "pointer")
-                    .attr("vector-effect", "non-scaling-stroke");
-            })
-            .on("mouseout", function (event, d) {
-                if (!this.classList.contains('selected-country')) {
-                    d3.select(this)
-                        .attr("stroke", null)
-                        .attr("stroke-width", null);
-                }
-            });
-
-        // Show or hide the slider based on the selected dataset
-        slider.style("display", selectedDataset === "temperature" ? "block" : "none");
-    }
-
-    // Function to handle country selection and display details
-    function selectCountry(event, country, selectedDataset) {
-        // Reset all countries to default styling
-        g.selectAll("path").classed("selected-country", false)
-            .attr("stroke", null)
-            .attr("stroke-width", null);
-
-        // Highlight the selected country
-        d3.select(event.currentTarget)
-            .classed("selected-country", true)
-            .attr("stroke", "#333")
-            .attr("stroke-width", "2px");
-
-        // Get country data
-        const countryCode = country.id;
-        const countryName = country.properties.name;
-
-        centerOnCountry(country);
-
-        // Create HTML with all available data for this country
-        let detailHTML = `<h3>${countryName}</h3>`;
-
-        // Temperature data
-        if (datasets.temperature[countryCode]) {
-            const temp = datasets.temperature[countryCode][currentMonth];
-            detailHTML += `
-                <div class="data-section">
-                    <h4>Temperature</h4>
-                    <p><strong>Average Temperature:</strong> ${temp !== undefined ? temp.toFixed(1) + "°C" : "Data not available"}</p>
-                    <p><strong>Month:</strong> ${new Date(0, currentMonth - 1).toLocaleString('default', { month: 'long' })}</p>
-                </div>
-            `;
-        }
-
-        // Tourism popularity data
-        if (datasets.popularity[countryCode]) {
-            const popularity = datasets.popularity[countryCode];
-            detailHTML += `
-                <div class="data-section">
-                    <h4>Tourism Popularity</h4>
-                    <p><strong>Score:</strong> ${popularity !== undefined ? popularity.toFixed(2) : "Data not available"}</p>
-                </div>
-            `;
-        }
-
-        // Budget data
-        if (datasets.budget[countryCode]) {
-            const budget = datasets.budget[countryCode];
-            detailHTML += `
-                <div class="data-section">
-                    <h4>Trip Budget</h4>
-                    <p><strong>Average Cost:</strong> ${budget !== undefined ? "$" + budget.toFixed(0) : "Data not available"}</p>
-                </div>
-            `;
-        }
-
-        // If no data available for any dataset
-        if (!datasets.temperature[countryCode] &&
-            !datasets.popularity[countryCode] &&
-            !datasets.budget[countryCode]) {
-            detailHTML += "<p>No data available for this country</p>";
-        }
-
-        // Update the existing country-details div
-        d3.select(".country-details").html(detailHTML);
-    }
-
-    function centerOnCountry(country) {
-        // Get the bounds of the country path
-        const bounds = path.bounds(country);
-        const width = bounds[1][0] - bounds[0][0];
-        const height = bounds[1][1] - bounds[0][1];
-        
-        // Get the centroid for position calculation
-        const centroid = d3.geoCentroid(country);
-        const [x, y] = projection(centroid);
-        
-        // Calculate the country's area and aspect ratio
-        const area = width * height;
-        const aspectRatio = width / height;
-        
-        // Base scale calculation with more moderate zooming
-        let baseScale = 0.8 / Math.max(width / 800, height / 400);
-        
-        // Adjust scale based on country characteristics with more conservative values
-        let scale = baseScale;
-        
-        // Handle special cases with reduced zoom levels
-        if (area < 20) {
-            // Very small countries - use a more moderate zoom
-            scale = Math.min(Math.max(baseScale, 2.5), 4);
-        } else if (area < 100) {
-            // Small countries - more moderate zoom
-            scale = Math.min(Math.max(baseScale, 2), 3.5);
-        } else if (area > 2000) {
-            // Very large countries (Russia, Canada, etc)
-            scale = Math.min(baseScale * 0.7, 3);
-        } else if (aspectRatio > 3 || aspectRatio < 0.33) {
-            // Countries with extreme aspect ratios
-            scale = Math.min(baseScale * 0.8, 3);
-        }
-        
-        // More conservative scale limits
-        scale = Math.min(scale, 4);  // Lower maximum zoom level
-        scale = Math.max(scale, 1);  // Minimum zoom level
-        
-        // Calculate translation to center
-        const translateX = 400 - x * scale;
-        const translateY = 200 - y * scale;
-        
-        // Apply the transform with a transition
-        svg.transition()
-           .duration(750)
-           .call(
-               zoom.transform,
-               d3.zoomIdentity
-                 .translate(translateX, translateY)
-                 .scale(scale)
-           );
-    }
+    const world_map = new WorldMap(topo, datasets);
 
     // Initial map rendering with temperature data
-    updateMap("temperature");
+    world_map.updateMap("temperature");
 
     // Add event listeners to dropdown buttons
     d3.selectAll(".menu-button").on("click", function () {
         const selectedDataset = d3.select(this).attr("data-map-type");
-        updateMap(selectedDataset);
-    });
-
-    d3.select("#reset-zoom").on("click", function () {
-        svg.transition()
-            .duration(750)
-            .call(zoom.transform, d3.zoomIdentity);
+        world_map.updateMap(selectedDataset);
     });
 
     // Update the search functionality to display country details upon confirmation
@@ -326,9 +127,10 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
                     .on("click", function (event, countryName) {
                         // Find the selected country
                         const selectedCountry = topo.find((d) => d.properties.name === countryName);
+                        console.log("Selected country:", selectedCountry);
                         if (selectedCountry) {
-                            centerOnCountry(selectedCountry);
-                            selectCountry(event, selectedCountry, "temperature"); // Display details
+                            world_map.centerOnCountry(selectedCountry);
+                            world_map.selectCountry(event, selectedCountry, "temperature"); // Display details
                         }
 
                         // Hide the dropdown and clear the search input

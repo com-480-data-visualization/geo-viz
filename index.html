@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="main.css">
     <!-- Load d3.js and main script-->
     <script src="https://d3js.org/d3.v6.js"></script>
-    <script src="main.js" defer></script>
+    <script type="module" src="main.js" defer></script>
 </head>
 <body>
     <!-- Home page section -->
@@ -23,17 +23,22 @@
     <div class="map-section">
         <!-- Left panel: Map -->
         <div class="map-container">
-            <div class="dropdown">
-                <button class="dropdown-button">Select criterion</button>
-                <div class="dropdown-content">
-                    <button class="menu-button" data-map-type="temperature">Temperature</button>
-                    <button class="menu-button" data-map-type="popularity">Popularity</button>
-                    <button class="menu-button" data-map-type="budget">Trip Budget</button>
+            <div class="controls-container">
+                <div class="dropdown">
+                    <button class="dropdown-button">Select criterion</button>
+                    <div class="dropdown-content">
+                        <button class="menu-button" data-map-type="temperature">Temperature</button>
+                        <button class="menu-button" data-map-type="popularity">Popularity</button>
+                        <button class="menu-button" data-map-type="budget">Budget</button>
+                        <button class="menu-button" data-map-type="hotels">Hotels</button>
+                        <button class="menu-button" data-map-type="natural_sites">Nature</button>
+                        <button class="menu-button" data-map-type="cultural_sites">Culture</button>
+                    </div>
                 </div>
-            </div>
-            <div class="search-container">
-                <input type="text" id="country-search" placeholder="Search for a country..." />
-                <ul id="country-dropdown" class="dropdown-list"></ul>
+                <div class="search-container">
+                    <input type="text" id="country-search" placeholder="Search for a country..." />
+                    <ul id="country-dropdown" class="dropdown-list"></ul>
+                </div>
             </div>
             <div class="map-controls">
                 <button id="reset-zoom" title="Reset zoom">Reset View</button>
