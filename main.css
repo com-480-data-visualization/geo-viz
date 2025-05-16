@@ -44,7 +44,7 @@ body {
 
 .map-section {
     height: 100vh;
-    display: flex;
+    display: none; /* Hidden by default */
     flex-direction: row; /* Divide into two columns */
 }
 
@@ -58,10 +58,16 @@ body {
     box-sizing: border-box;
 }
 
+.controls-container {
+    display: flex; /* Align items horizontally */
+    justify-content: space-between; /* Add space between dropdown and search bar */
+    align-items: center; /* Vertically align items */
+    width: 100%; /* Ensure the container spans the full width */
+    margin-bottom: 10px; /* Add spacing below the controls */
+}
+
 .dropdown {
-    position: relative;
-    display: inline-block;
-    margin-bottom: 10px;
+    margin-right: 10px; /* Add spacing between dropdown and search bar */
 }
 
 .dropdown-button {
@@ -107,6 +113,49 @@ body {
 
 .dropdown:hover .dropdown-content {
     display: block;
+}
+
+.search-container {
+    flex-grow: 1; /* Allow the search bar to take up remaining space */
+    display: flex;
+    position: relative;
+    justify-content: flex-end; /* Align the search bar to the right */
+}
+
+#country-search {
+    width: 100%;
+    padding: 8px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.dropdown-list {
+    position: absolute; 
+    top: 100%; 
+    left: 0; 
+    width: 100%; 
+    transform: none;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: white;
+    z-index: 1000;
+    display: none;
+}
+
+.dropdown-list li {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.dropdown-list li:hover {
+    background-color: #f0f0f0;
 }
 
 #world_map {
@@ -177,6 +226,7 @@ body {
     vector-effect: non-scaling-stroke;
     fill-rule: evenodd;
 }
+
 .data-section {
     margin-bottom: 15px;
     padding-bottom: 10px;
@@ -211,48 +261,5 @@ body {
 }
 
 #reset-zoom:hover {
-    background-color: #f0f0f0;
-}
-
-.search-container {
-    position: relative;
-    margin: 0 auto;
-    text-align: center;
-    width: 60%; 
-}
-
-#country-search {
-    width: 80%;
-    padding: 8px;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box;
-}
-
-.dropdown-list {
-    position: absolute; 
-    top: 100%; 
-    left: 0; 
-    width: 150%; 
-    transform: none;
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    max-height: 150px;
-    overflow-y: auto;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: white;
-    z-index: 1000;
-    display: none;
-}
-
-.dropdown-list li {
-    padding: 8px;
-    cursor: pointer;
-}
-
-.dropdown-list li:hover {
     background-color: #f0f0f0;
 }

@@ -1,9 +1,19 @@
 import WorldMap from './js/WorldMap.js';
 
 // Smooth scrolling to the map section
-d3.select("#start-button").on("click", () =>
-    d3.select(".map-section").node().scrollIntoView({ behavior: "smooth" })
-);
+d3.select("#start-button").on("click", () => {
+    // Show the map section first (so we can scroll to it)
+    d3.select('.map-section').style('display', 'flex');
+
+    // Scroll to map section smoothly
+    d3.select('.map-section').node().scrollIntoView({ behavior: "smooth" });
+
+    // Wait ~500ms (scroll duration) before hiding the home page
+    setTimeout(() => {
+        d3.select('.home-page').style('display', 'none');
+    }, 600); // Adjust if needed
+});
+
 
 // Load data through promises
 const map_promise = d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
@@ -38,15 +48,44 @@ const budget_promise = d3.csv("https://raw.githubusercontent.com/com-480-data-vi
         });
         return budget_data;
     });
+const hotels_promise = d3.csv("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/hotels.csv")
+    .then((data) => {
+        let hotels_data = {};
+        data.forEach((row) => {
+            hotels_data[row["Code"]] = parseFloat(row["Hotel guests"]);
+        });
+        return hotels_data;
+    });
+const natural_sites_promise = d3.csv("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/natural_sites.csv")
+    .then((data) => {
+        let natural_sites_data = {};
+        data.forEach((row) => {
+            natural_sites_data[row["Code"]] = parseFloat(row["Natural sites"]);
+        });
+        return natural_sites_data;
+    });
+const cultural_sites_promise = d3.csv("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/cultural_sites.csv")
+    .then((data) => {
+        let cultural_sites_data = {};
+        data.forEach((row) => {
+            cultural_sites_data[row["Code"]] = parseFloat(row["Cultural sites"]);
+        });
+        return cultural_sites_data;
+    });
 
 // Draw map when promises return
-Promise.all([map_promise, temperature_promise, popularity_promise, budget_promise]).then((results) => {
+Promise.all([map_promise, temperature_promise, popularity_promise, budget_promise,
+    hotels_promise, natural_sites_promise, cultural_sites_promise
+]).then((results) => {
     console.log("Data loaded");
     let topo = results[0];
     let datasets = {
         temperature: results[1],
         popularity: results[2],
-        budget: results[3]
+        budget: results[3],
+        hotels: results[4],
+        natural_sites: results[5],
+        cultural_sites: results[6]
     };
 
     const world_map = new WorldMap(topo, datasets);
@@ -58,12 +97,6 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
     d3.selectAll(".menu-button").on("click", function () {
         const selectedDataset = d3.select(this).attr("data-map-type");
         world_map.updateMap(selectedDataset);
-    });
-
-    d3.select("#reset-zoom").on("click", function () {
-        svg.transition()
-            .duration(750)
-            .call(zoom.transform, d3.zoomIdentity);
     });
 
     // Update the search functionality to display country details upon confirmation
@@ -94,9 +127,10 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
                     .on("click", function (event, countryName) {
                         // Find the selected country
                         const selectedCountry = topo.find((d) => d.properties.name === countryName);
+                        console.log("Selected country:", selectedCountry);
                         if (selectedCountry) {
-                            centerOnCountry(selectedCountry);
-                            selectCountry(event, selectedCountry, "temperature"); // Display details
+                            world_map.centerOnCountry(selectedCountry);
+                            world_map.selectCountry(event, selectedCountry, "temperature"); // Display details
                         }
 
                         // Hide the dropdown and clear the search input

@@ -2,8 +2,10 @@ export default class WorldMap {
     constructor(topo, datasets) {
         this.topo = topo;
         this.datasets = datasets;
+        this.width = 800; // Set the width of the SVG
+        this.height = 400; // Set the height of the SVG
         this.svg = d3.select("svg#world_map")
-        .attr("viewBox", `0 0 800 400`) // Set the viewBox to match the map's dimensions
+        .attr("viewBox", `0 0 ${this.width} ${this.height}`) // Set the viewBox for responsive scaling
         .attr("preserveAspectRatio", "xMidYMid meet"); // Ensure the map scales properly
         this.container = this.svg.append("g");
         this.zoom = d3.zoom()
@@ -15,11 +17,18 @@ export default class WorldMap {
                 .attr("stroke-width", strokeWidth);
         });
         this.svg.call(this.zoom); // Apply zoom behavior to the SVG 
+        d3.select("#reset-zoom").on("click", ()=> {
+            this.svg.transition()
+                .duration(750)
+                .call(this.zoom.transform, d3.zoomIdentity);
+        });
         this.path = d3.geoPath();
         this.projection = d3.geoMercator()
-            .scale(140) // Adjust scale for better fit
-            .center([0, 0]) // Center the map
-            .translate([400, 200]); // Translate to the center of the otate([0, 0])viewBox
+        .scale(140) // Adjust scale for better fit
+        .center([0, 0]) // Center the map
+        .translate([400, 250]); // Translate to the center of the viewBox
+        this.initialScale = this.projection.scale();
+        this.initialTranslate = this.projection.translate();
         this.selectedDataset = "temperature"; // Default dataset
         this.currentMonth = 1; // Default month
         // Add slider for temperature map below the map title
@@ -37,72 +46,45 @@ export default class WorldMap {
         });
         this.colorScales = {
             temperature: d3.scaleDiverging((t) => d3.interpolateRdBu(1 - t)), // Red for warm, blue for cold
-            popularity: d3.scaleSequentialLog().interpolator(d3.interpolateBlues), // Blue for tourism popularity
-            budget: d3.scaleDiverging().interpolator((t) => d3.interpolateRdYlGn(1-t)) // Green for low budget, red for high budget
+            popularity: d3.scaleSequential().interpolator(d3.interpolateBlues), // Blue for tourism popularity
+            budget: d3.scaleDiverging().interpolator((t) => d3.interpolateRdYlGn(1-t)), // Green for low budget, red for high budget
+            hotels: d3.scaleSequential().interpolator(d3.interpolateOranges), // Orange for hotel guests
+            natural_sites: d3.scaleSequential().interpolator(d3.interpolateGreens), // Green for natural sites
+            cultural_sites: d3.scaleSequential().interpolator(d3.interpolatePurples) // Purple for cultural sites
         };
         this.titles = {
-            temperature: "Global Temperature Map",
-            popularity: "Tourism Popularity Map",
-            budget: "Trip Budget Map"
+            temperature: "Average Monthly Temperature",
+            popularity: "Annual Number of Tourists",
+            budget: "Average Trip Budget",
+            hotels: "Annual Number of Hotel Guests",
+            natural_sites: "Number of UNESCO World Heritage Natural Sites",
+            cultural_sites: "Number of UNESCO World Heritage Cultural Sites"
         };
     }
 
-    getCurrentMonth() {
-        return this.currentMonth;
-    }
-
+    // Function to center the map on a selected country
     centerOnCountry(country) {
-        // Get the bounds of the country path
-        const bounds = this.path.bounds(country);
-        const width = bounds[1][0] - bounds[0][0];
-        const height = bounds[1][1] - bounds[0][1];
-        
-        // Get the centroid for position calculation
-        const centroid = d3.geoCentroid(country);
-        const [x, y] = this.projection(centroid);
-        
-        // Calculate the country's area and aspect ratio
-        const area = width * height;
-        const aspectRatio = width / height;
-        
-        // Base scale calculation with more moderate zooming
-        let baseScale = 0.8 / Math.max(width / 800, height / 400);
-        
-        // Adjust scale based on country characteristics with more conservative values
-        let scale = baseScale;
-        
-        // Handle special cases with reduced zoom levels
-        if (area < 20) {
-            // Very small countries - use a more moderate zoom
-            scale = Math.min(Math.max(baseScale, 2.5), 4);
-        } else if (area < 100) {
-            // Small countries - more moderate zoom
-            scale = Math.min(Math.max(baseScale, 2), 3.5);
-        } else if (area > 2000) {
-            // Very large countries (Russia, Canada, etc)
-            scale = Math.min(baseScale * 0.7, 3);
-        } else if (aspectRatio > 3 || aspectRatio < 0.33) {
-            // Countries with extreme aspect ratios
-            scale = Math.min(baseScale * 0.8, 3);
-        }
-        
-        // More conservative scale limits
-        scale = Math.min(scale, 4);  // Lower maximum zoom level
-        scale = Math.max(scale, 1);  // Minimum zoom level
-        
-        // Calculate translation to center
-        const translateX = 400 - x * scale;
-        const translateY = 200 - y * scale;
-        
+        const padding = 50;
+        // Calculate the bounding box of the country
+        this.projection.fitExtent(
+            [[padding, padding], [this.width - padding, this.height - padding]],
+            country
+        );
+        // Get the new scale and translation values
+        const newScale = this.projection.scale();
+        const [newTranslateX, newTranslateY] = this.projection.translate();
+        const k = newScale / this.initialScale;
+        const tx = newTranslateX - this.initialTranslate[0] * k;
+        const ty = newTranslateY - this.initialTranslate[1] * k;
         // Apply the transform with a transition
         this.svg.transition()
            .duration(750)
            .call(
                this.zoom.transform,
                d3.zoomIdentity
-                 .translate(translateX, translateY)
-                 .scale(scale)
-           );
+                 .translate(tx, ty)
+                 .scale(k)
+        );
     }
 
     // Function to handle country selection and display details
@@ -113,10 +95,12 @@ export default class WorldMap {
             .attr("stroke-width", null);
 
         // Highlight the selected country
-        d3.select(event.currentTarget)
-            .classed("selected-country", true)
-            .attr("stroke", "#333")
-            .attr("stroke-width", "2px");
+        const countryPath = this.container.select(`path[data-id="${country.id}"]`);
+        if (!countryPath.empty()) {
+            countryPath.classed("selected-country", true)
+                .attr("stroke", "#333")
+                .attr("stroke-width", "2px");
+        }
 
         // Get country data
         const countryCode = country.id;
@@ -208,6 +192,7 @@ export default class WorldMap {
         this.container.selectAll("path")
             .data(this.topo)
             .join("path")
+            .attr("data-id", (d) => d.id) // Add data-id attribute
             .attr("d", d3.geoPath().projection(this.projection))
             .attr("fill", (d) => {
                 const value =
