@@ -8,10 +8,12 @@ export default class WorldMap {
         .attr("viewBox", `0 0 ${this.width} ${this.height}`) // Set the viewBox for responsive scaling
         .attr("preserveAspectRatio", "xMidYMid meet"); // Ensure the map scales properly
         this.container = this.svg.append("g");
+        this.zoom_transform = d3.zoomIdentity; // Initialize zoom transform
         this.zoom = d3.zoom()
         .scaleExtent([1, 8]) // Set zoom limits
         .on("zoom", (event) => {
             this.container.attr("transform", event.transform); // Apply zoom transformation
+            this.zoom_transform = event.transform; // Update zoom transform
             const strokeWidth = 1.5 / event.transform.k;
             this.container.selectAll("path.selected-country")
                 .attr("stroke-width", strokeWidth);
@@ -159,24 +161,35 @@ export default class WorldMap {
     // Function to update the map based on the selected dataset
     updateMap(selectedDataset) {
         let data = this.datasets[selectedDataset];
-        let scale = this.colorScales[selectedDataset];
+        let color_scale = this.colorScales[selectedDataset];
+        this.projection.scale(this.initialScale); // Reset projection scale
+        this.projection.translate(this.initialTranslate); // Reset projection translation
+        // apply current zoom transform
+        this.svg.transition()
+            .duration(0)
+            .call(
+                this.zoom.transform,
+                d3.zoomIdentity
+                    .translate(this.zoom_transform.x, this.zoom_transform.y)
+                    .scale(this.zoom_transform.k)
+            );
     
-        // Set the domain of the scale based on the dataset
+        // Set the domain of the color scale based on the dataset
         let minValue, maxValue, midValue;
         if (selectedDataset === "temperature") {
             minValue = d3.min(Object.values(data), (d) => d[this.currentMonth]);
             maxValue = d3.max(Object.values(data), (d) => d[this.currentMonth]);
             midValue = (minValue + maxValue) / 2; // Use the midpoint for divergence
-            scale.domain([minValue, midValue, maxValue]);
+            color_scale.domain([minValue, midValue, maxValue]);
         } else {
             minValue = d3.min(Object.values(data));
             maxValue = d3.max(Object.values(data));
             if (selectedDataset === "budget") {
                 midValue = d3.median(Object.values(data));
-                scale.domain([minValue, midValue, maxValue]);
+                color_scale.domain([minValue, midValue, maxValue]);
             }
             else {
-                scale.domain([minValue, maxValue]);
+                color_scale.domain([minValue, maxValue]);
             }
         }
     
@@ -199,7 +212,7 @@ export default class WorldMap {
                 selectedDataset === "temperature"
                 ? data[d.id]?.[this.currentMonth]
                 : data[d.id];
-                return value ? scale(value) : "#ccc"; // Default color for missing data
+                return value ? color_scale(value) : "#ccc"; // Default color for missing data
             })
             .on("click", (event, d) => {
                 this.selectCountry(event, d);
