@@ -49,7 +49,7 @@ body {
 }
 
 .map-container {
-    width: 70%; /* Map takes 70% of the width */
+    width: 65%; /* Adjust to match the new info-panel width */
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -167,10 +167,11 @@ body {
     font-size: 1.5rem;
     text-align: center;
     margin-top: 10px;
+    margin-bottom: 5px;
 }
 
 .info-panel {
-    width: 30%; /* Right panel takes 30% of the width */
+    width: 35%; /* Increase from 30% to 35% */
     background-color: #f9f9f9;
     padding: 20px;
     box-sizing: border-box;
@@ -179,6 +180,8 @@ body {
     justify-content: flex-start;
     align-items: flex-start;
     border-left: 1px solid #ddd;
+    overflow-y: auto; /* Allow the entire panel to scroll if needed */
+    height: 100%; /* Ensure it takes full height */
 }
 
 .info-panel h2 {
@@ -199,11 +202,12 @@ body {
     border-radius: 5px;
     width: 100%;
     box-sizing: border-box;
+    padding-right: 15px; /* Increase right padding since we no longer have scrollbar */
 }
 
 .country-details h3 {
-    margin: 0 0 10px 0;
-    font-size: 1.2rem;
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
 }
 
 .country-details p {
@@ -300,9 +304,9 @@ body {
 .trip-overview {
     background-color: #f5f5f5;
     border: 1px solid #ddd;
-    padding: 15px;
+    padding: 12px;
     border-radius: 4px;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     width: 100%;
     box-sizing: border-box;
 }
@@ -320,8 +324,9 @@ body {
 }
 
 .co2-comparison h4 {
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     color: #333;
+    font-size: 1rem;
 }
 
 .co2-bar-container {
@@ -337,7 +342,7 @@ body {
 }
 
 .co2-bar {
-    height: 24px;
+    height: 20px; /* Decrease from 24px */
     border-radius: 4px;
     position: relative;
     min-width: 1%; /* Ensure very small values are still visible */
@@ -369,4 +374,66 @@ body {
 
 .co2-value {
     font-weight: bold;
+}
+
+/* Country Comparison Styles */
+.country-comparison {
+    margin-top: 15px;
+    border-top: 1px solid #ddd;
+    padding-top: 8px;
+}
+
+.comparison-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 4px 8px; /* Reduce gap from 5px 10px */
+    margin-top: 8px;
+    font-size: 0.9em;
+}
+
+.comparison-header {
+    font-weight: bold;
+    padding: 4px;
+    background-color: #f0f0f0;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.comparison-label {
+    font-weight: bold;
+    padding: 4px 0;
+    border-bottom: 1px dotted #ddd;
+}
+
+/* Destination Details Styles */
+.destination-details {
+    margin-top: 20px;
+    border-top: 1px solid #ddd;
+    padding-top: 10px;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dotted #ddd;
+}
+
+.detail-label {
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.detail-value {
+    font-size: 1em;
+    text-align: right;
+    color: #333;
 }

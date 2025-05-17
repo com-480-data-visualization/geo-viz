@@ -45,6 +45,9 @@ export default class WorldMap {
         this.slider.on("input", (event) => {
             this.currentMonth = +event.target.value;
             this.updateMap("temperature");
+            if (this.homeCountry && this.destinationCountry) {
+                this.displayTripDetails();
+            }
         });
         this.colorScales = {
             temperature: d3.scaleDiverging((t) => d3.interpolateRdBu(1 - t)), // Red for warm, blue for cold
@@ -248,38 +251,82 @@ export default class WorldMap {
             </div>
         `;
         
-        // Add destination country details
+        detailHTML += `
+        <div class="destination-details">
+            <h3>Destination Information: ${destName}</h3>
+            <div class="details-grid">
+        `;
+        
+        // Add temperature data if available
         if (this.datasets.temperature[destCode]) {
             const temp = this.datasets.temperature[destCode][this.currentMonth];
+            const month = new Date(0, this.currentMonth - 1).toLocaleString('en-US', { month: 'long' });
             detailHTML += `
-                <div class="data-section destination-data">
-                    <h4>Destination Temperature</h4>
-                    <p><strong>Average Temperature:</strong> ${temp !== undefined ? temp.toFixed(1) + "°C" : "Data not available"}</p>
-                    <p><strong>Month:</strong> ${new Date(0, this.currentMonth - 1).toLocaleString('en-US', { month: 'long' })}</p>
+                <div class="detail-item">
+                    <div class="detail-label">🌡️ Temperature in ${month}</div>
+                    <div class="detail-value">${temp !== undefined ? temp.toFixed(1) + "°C" : "Data not available"}</div>
                 </div>
             `;
         }
         
+        // Add popularity/tourism data if available
         if (this.datasets.popularity[destCode]) {
             const popularity = this.datasets.popularity[destCode];
             detailHTML += `
-                <div class="data-section destination-data">
-                    <h4>Tourism Popularity</h4>
-                    <p><strong>Annual Visitors:</strong> ${popularity !== undefined ? Number(popularity).toLocaleString() : "Data not available"}</p>
+                <div class="detail-item">
+                    <div class="detail-label">👥 Annual Tourists</div>
+                    <div class="detail-value">${popularity !== undefined ? Number(popularity).toLocaleString() : "N/A"}</div>
                 </div>
             `;
         }
         
+        // Add budget data if available
         if (this.datasets.budget[destCode]) {
             const budget = this.datasets.budget[destCode];
             detailHTML += `
-                <div class="data-section destination-data">
-                    <h4>Trip Budget</h4>
-                    <p><strong>Average Cost:</strong> ${budget !== undefined ? "$" + budget.toFixed(0) : "Data not available"}</p>
+                <div class="detail-item">
+                    <div class="detail-label">💰 Average Trip Cost</div>
+                    <div class="detail-value">${budget !== undefined ? "$" + budget.toFixed(0) : "N/A"}</div>
                 </div>
             `;
         }
         
+        // Add hotel data if available
+        if (this.datasets.hotels && this.datasets.hotels[destCode]) {
+            detailHTML += `
+                <div class="detail-item">
+                    <div class="detail-label">🏨 Annual Hotel Guests</div>
+                    <div class="detail-value">${Number(this.datasets.hotels[destCode]).toLocaleString()}</div>
+                </div>
+            `;
+        }
+        
+        // Add UNESCO natural sites if available
+        if (this.datasets.natural_sites && this.datasets.natural_sites[destCode] !== undefined) {
+            detailHTML += `
+                <div class="detail-item">
+                    <div class="detail-label">🏞️ UNESCO Natural Sites</div>
+                    <div class="detail-value">${this.datasets.natural_sites[destCode]}</div>
+                </div>
+            `;
+        }
+        
+        // Add UNESCO cultural sites if available
+        if (this.datasets.cultural_sites && this.datasets.cultural_sites[destCode] !== undefined) {
+            detailHTML += `
+                <div class="detail-item">
+                    <div class="detail-label">🏛️ UNESCO Cultural Sites</div>
+                    <div class="detail-value">${this.datasets.cultural_sites[destCode]}</div>
+                </div>
+            `;
+        }
+        
+        // Close the details grid and destination details div
+        detailHTML += `
+            </div>
+        </div>
+    `;
+    
         // Update the details div
         d3.select(".country-details").html(detailHTML);
     }
