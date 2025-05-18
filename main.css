@@ -54,23 +54,21 @@ body {
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    padding: 20px;
+    padding: 1px;
     box-sizing: border-box;
 }
 
 .controls-container {
     display: flex; /* Align items horizontally */
-    justify-content: space-between; /* Add space between dropdown and search bar */
-    align-items: center; /* Vertically align items */
+    gap: 10px; /* Space between elements */
+    align-items: center;
     width: 100%; /* Ensure the container spans the full width */
-    margin-bottom: 10px; /* Add spacing below the controls */
+    margin-bottom: 1px; /* Add spacing below the controls */
+    padding-left: 50px;
+    padding-right: 50px;
 }
 
-.dropdown {
-    margin-right: 10px; /* Add spacing between dropdown and search bar */
-}
-
-.dropdown-button {
+.map-section button {
     padding: 10px 15px;
     font-size: 1rem;
     background-color: #007BFF;
@@ -81,7 +79,7 @@ body {
     transition: background-color 0.3s ease;
 }
 
-.dropdown-button:hover {
+.map-section button:hover {
     background-color: #0056b3;
 }
 
@@ -116,10 +114,9 @@ body {
 }
 
 .search-container {
-    flex-grow: 1; /* Allow the search bar to take up remaining space */
+    flex-grow: 1;
     display: flex;
     position: relative;
-    justify-content: flex-end; /* Align the search bar to the right */
 }
 
 #country-search {
@@ -158,15 +155,21 @@ body {
     background-color: #f0f0f0;
 }
 
-#world_map {
+.legend-container {
+    width: 10%;
+}
+
+#world-map {
     width: 100%;
     height: 100%;
+    margin-left:auto;
 }
 
 #map-title {
     font-size: 1.5rem;
     text-align: center;
-    margin-top: 10px;
+    margin-top: 0px;
+    margin-bottom:0px;
 }
 
 .info-panel {
@@ -213,7 +216,7 @@ body {
 
 .month-slider {
     width: 300px;
-    margin: 10px auto;
+    margin: 5px;
     display: block;
 }
 
@@ -243,23 +246,13 @@ body {
 }
 
 .map-controls {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 10;
+    display: flex;
+    flex-direction: row;
 }
 
-#reset-zoom {
-    padding: 6px 10px;
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    transition: background-color 0.2s;
-}
-
-#reset-zoom:hover {
-    background-color: #f0f0f0;
+.world-map-container {
+    height:100%;
+    width:100%;
+    display:flex;
+    flex-direction: row;
 }

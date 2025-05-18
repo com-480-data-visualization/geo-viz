@@ -4,13 +4,13 @@ export default class WorldMap {
         this.datasets = datasets;
         this.width = 800; // Set the width of the SVG
         this.height = 400; // Set the height of the SVG
-        this.svg = d3.select("svg#world_map")
+        this.svg = d3.select("svg#world-map")
         .attr("viewBox", `0 0 ${this.width} ${this.height}`) // Set the viewBox for responsive scaling
         .attr("preserveAspectRatio", "xMidYMid meet"); // Ensure the map scales properly
         this.container = this.svg.append("g");
         this.zoom_transform = d3.zoomIdentity; // Initialize zoom transform
         this.zoom = d3.zoom()
-        .scaleExtent([1, 8]) // Set zoom limits
+        .scaleExtent([1, 100]) // Set zoom limits
         .on("zoom", (event) => {
             this.container.attr("transform", event.transform); // Apply zoom transformation
             this.zoom_transform = event.transform; // Update zoom transform
@@ -158,6 +158,77 @@ export default class WorldMap {
         d3.select(".country-details").html(detailHTML);
     }
 
+    createLegend(selectedDataset) {
+        // Select the legend container
+        const legendContainer = d3.select(".legend-container");
+        // Get the dimensions of the legend from the container
+        const legendWidth = 50;
+        const legendHeight = this.height;
+        // Clear previous legend
+        legendContainer.selectAll("*").remove();
+        // 1. Set dimensions
+        const margin = { top: 10, right: 60, bottom: 10, left: 40 };
+        // 2. Create SVG
+        const svg = d3.select(".legend-container")
+        .append("svg")
+        .attr("width", 60)
+        .attr("height", legendHeight + margin.top + margin.bottom);
+        // 3. Create a defs element and a linear gradient
+        const defs = svg.append("defs");
+        const linearGradient = defs.append("linearGradient")
+        .attr("id", "legend-gradient")
+        .attr("x1", "0%")
+        .attr("y1", "100%") // Top to bottom
+        .attr("x2", "0%")
+        .attr("y2", "0%");
+        // 4. Define gradient stops (you can increase the number for smoother gradient)
+        const dataset = this.datasets[selectedDataset];
+        const colorScale = this.colorScales[selectedDataset];
+        const domain = colorScale.domain();
+        const minValue = colorScale.domain()[0];
+        const maxValue = domain.length > 2 ? colorScale.domain()[2] : colorScale.domain()[1];
+        const range = maxValue - minValue;
+        const stops = d3.range(0, 1.01, 0.1);  // 0 to 1 in steps of 0.1
+        stops.forEach(t => {
+            linearGradient.append("stop")
+                .attr("offset", `${t * 100}%`)
+                .attr("stop-color", colorScale(t * range + minValue));
+        });
+        // 5. Append the gradient-filled rect
+        svg.append("rect")
+        .attr("x", margin.left)
+        .attr("y", margin.top)
+        .attr("width", legendWidth)
+        .attr("height", legendHeight)
+        .style("fill", "url(#legend-gradient)");
+        // 6. Create a scale for the legend axis
+        const legendScale = d3.scaleLinear()
+        .domain([minValue, maxValue])
+        .range([legendHeight, 0]); // Invert the range for top-to-bottom
+        // 7. Create and add the axis
+        const legendAxis = d3.axisLeft(legendScale)
+        .ticks(10)
+        .tickFormat((d) => {
+            if (selectedDataset === "temperature") {
+                return d + "°C";
+            } else if (selectedDataset === "budget") {
+                return "$" + d;
+            } else if (selectedDataset === "popularity") {
+                return parseInt(d) / 1000000 + "M";
+            } else if (selectedDataset === "hotels") {
+                return parseInt(d) / 1000000 + "M";
+            } else if (selectedDataset === "natural_sites") {
+                return d;
+            } else if (selectedDataset === "cultural_sites") {
+                return d;
+            }
+        });
+        svg.append("g")
+        .attr("class", "legend-axis")
+        .attr("transform", `translate(${margin.left}, ${margin.top})`)
+        .call(legendAxis);        
+    }
+
     // Function to update the map based on the selected dataset
     updateMap(selectedDataset) {
         let data = this.datasets[selectedDataset];
@@ -177,19 +248,16 @@ export default class WorldMap {
         // Set the domain of the color scale based on the dataset
         let minValue, maxValue, midValue;
         if (selectedDataset === "temperature") {
-            minValue = d3.min(Object.values(data), (d) => d[this.currentMonth]);
-            maxValue = d3.max(Object.values(data), (d) => d[this.currentMonth]);
-            midValue = (minValue + maxValue) / 2; // Use the midpoint for divergence
-            color_scale.domain([minValue, midValue, maxValue]);
+            color_scale.domain([-20, 10, 40]);
         } else {
             minValue = d3.min(Object.values(data));
             maxValue = d3.max(Object.values(data));
             if (selectedDataset === "budget") {
                 midValue = d3.median(Object.values(data));
-                color_scale.domain([minValue, midValue, maxValue]);
+                color_scale.domain([0, midValue, maxValue]);
             }
             else {
-                color_scale.domain([minValue, maxValue]);
+                color_scale.domain([0, maxValue]);
             }
         }
     
@@ -235,5 +303,8 @@ export default class WorldMap {
     
         // Show or hide the slider based on the selected dataset
         this.slider.style("display", selectedDataset === "temperature" ? "block" : "none");
+
+        // Add or update the legend
+        this.createLegend(selectedDataset);
     }
 }
