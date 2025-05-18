@@ -45,6 +45,9 @@ export default class WorldMap {
         this.slider.on("input", (event) => {
             this.currentMonth = +event.target.value;
             this.updateMap("temperature");
+            if (this.homeCountry && this.destinationCountry) {
+                this.displayTripDetails();
+            }
         });
         this.colorScales = {
             temperature: d3.scaleDiverging((t) => d3.interpolateRdBu(1 - t)), // Red for warm, blue for cold
@@ -62,6 +65,50 @@ export default class WorldMap {
             natural_sites: "Number of UNESCO World Heritage Natural Sites",
             cultural_sites: "Number of UNESCO World Heritage Cultural Sites"
         };
+        this.homeCountry = null;
+        this.destinationCountry = null;
+        this.selectionMode = "home"; // Start with selecting home country
+        
+        // Add a toggle button for selection mode
+        d3.select(".map-container")
+            .append("div")
+            .attr("class", "selection-controls")
+            .html(`
+                <button id="toggle-selection" class="selection-btn home-mode">
+                    Currently selecting: <span>Home Country</span>
+                </button>
+                <button id="reset-selection" class="selection-btn">Reset Selection</button>
+            `);
+            
+        d3.select("#toggle-selection").on("click", () => this.toggleSelectionMode());
+        d3.select("#reset-selection").on("click", () => this.resetCountrySelection());
+    }
+    
+    // Add a method to toggle between home and destination selection
+    toggleSelectionMode() {
+        this.selectionMode = this.selectionMode === "home" ? "destination" : "home";
+        const button = d3.select("#toggle-selection");
+        
+        if (this.selectionMode === "home") {
+            button.classed("home-mode", true).classed("destination-mode", false);
+            button.select("span").text("Home Country");
+        } else {
+            button.classed("home-mode", false).classed("destination-mode", true);
+            button.select("span").text("Destination Country");
+        }
+    }
+    
+    resetCountrySelection() {
+        this.homeCountry = null;
+        this.destinationCountry = null;
+        this.container.selectAll("path")
+            .classed("selected-country", false)
+            .classed("home-country", false)
+            .classed("destination-country", false)
+            .attr("stroke", null)
+            .attr("stroke-width", null);
+            
+        d3.select(".country-details").html("<h3>Country Details</h3><p>Select a home country and destination to see trip details.</p>");
     }
 
     // Function to center the map on a selected country
@@ -89,73 +136,224 @@ export default class WorldMap {
         );
     }
 
-    // Function to handle country selection and display details
     selectCountry(event, country) {
-        // Reset all countries to default styling
-        this.container.selectAll("path").classed("selected-country", false)
-            .attr("stroke", null)
-            .attr("stroke-width", null);
-
-        // Highlight the selected country
-        const countryPath = this.container.select(`path[data-id="${country.id}"]`);
-        if (!countryPath.empty()) {
-            countryPath.classed("selected-country", true)
-                .attr("stroke", "#333")
-                .attr("stroke-width", "2px");
-        }
-
-        // Get country data
         const countryCode = country.id;
         const countryName = country.properties.name;
-
-        this.centerOnCountry(country);
-
-        // Create HTML with all available data for this country
-        let detailHTML = `<h3>${countryName}</h3>`;
-
-        // Temperature data
-        if (this.datasets.temperature[countryCode]) {
-            const temp = this.datasets.temperature[countryCode][this.currentMonth];
+        
+        if (this.selectionMode === "home") {
+            // If selecting home country, clear previous home selection
+            this.container.selectAll("path.home-country")
+                .classed("home-country", false)
+                .classed("selected-country", false)
+                .attr("stroke", null)
+                .attr("stroke-width", null);
+                
+            // Set new home country
+            this.homeCountry = country;
+            const countryPath = this.container.select(`path[data-id="${countryCode}"]`);
+            if (!countryPath.empty()) {
+                countryPath.classed("home-country", true)
+                    .classed("selected-country", true)
+                    .attr("stroke", "#0066CC")
+                    .attr("stroke-width", "2px");
+            }
+            
+            // Switch to destination selection mode
+            this.toggleSelectionMode();
+        } else {
+            // If selecting destination country
+            if (this.homeCountry && this.homeCountry.id === countryCode) {
+                // Can't select same country as both home and destination
+                return;
+            }
+            
+            // Clear previous destination selection
+            this.container.selectAll("path.destination-country")
+                .classed("destination-country", false)
+                .classed("selected-country", false)
+                .attr("stroke", null)
+                .attr("stroke-width", null);
+                
+            // Set new destination country
+            this.destinationCountry = country;
+            const countryPath = this.container.select(`path[data-id="${countryCode}"]`);
+            if (!countryPath.empty()) {
+                countryPath.classed("destination-country", true)
+                    .classed("selected-country", true)
+                    .attr("stroke", "#CC0000")
+                    .attr("stroke-width", "2px");
+            }
+        }
+        
+        // Display details if both countries are selected
+        if (this.homeCountry && this.destinationCountry) {
+            this.displayTripDetails();
+        }
+    }
+    
+    // Add a method to calculate and display trip details
+    displayTripDetails() {
+        const homeCode = this.homeCountry.id;
+        const homeName = this.homeCountry.properties.name;
+        const destCode = this.destinationCountry.id;
+        const destName = this.destinationCountry.properties.name;
+        
+        // Calculate the distance between countries
+        const distance = this.calculateDistance(this.homeCountry, this.destinationCountry);
+        
+        // Estimate CO2 emissions (rough calculation - 0.2 kg CO2 per km per person for air travel)
+        const co2Emissions = distance * 0.2 * 2; // Multiply by 2 for round trip
+        
+        // Reference value: Recommended max CO2 emissions per person per year (2000 kg)
+        const annualCO2Budget = 2000;
+        
+        // Determine which value is larger for scaling
+        const maxValue = Math.max(co2Emissions, annualCO2Budget);
+        
+        // Calculate percentages based on the max value
+        const tripPercent = (co2Emissions / maxValue) * 100;
+        const budgetPercent = (annualCO2Budget / maxValue) * 100;
+        
+        // Calculate percentage of annual budget
+        const percentOfAnnual = (co2Emissions / annualCO2Budget) * 100;
+        
+        // Determine trip impact class
+        const impactClass = co2Emissions > annualCO2Budget ? "high-impact" : "";
+        
+        let detailHTML = `
+            <h3>Trip Details</h3>
+            <div class="trip-overview">
+                <p><strong>From:</strong> ${homeName}</p>
+                <p><strong>To:</strong> ${destName}</p>
+                <p><strong>Approximate Distance:</strong> ${Math.round(distance)} km</p>
+                <p><strong>Estimated CO2 Emissions (Round Trip):</strong> ${Math.round(co2Emissions)} kg</p>
+                
+                <div class="co2-comparison">
+                    <h4>Environmental Impact</h4>
+                    <p>This trip represents <strong>${percentOfAnnual.toFixed(1)}%</strong> of the recommended annual CO2 budget per person</p>
+                    
+                    <div class="co2-bar-container">
+                        <div class="co2-label">
+                            <span>Annual Budget</span>
+                            <span class="co2-value">2000 kg</span>
+                        </div>
+                        <div class="co2-bar annual-bar" style="width: ${Math.max(1, budgetPercent)}%;"></div>
+                    </div>
+                    
+                    <div class="co2-bar-container">
+                        <div class="co2-label">
+                            <span>This Trip</span>
+                            <span class="co2-value">${Math.round(co2Emissions)} kg</span>
+                        </div>
+                        <div class="co2-bar trip-bar ${impactClass}" style="width: ${Math.max(1, tripPercent)}%;"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        detailHTML += `
+        <div class="destination-details">
+            <h3>Destination Information: ${destName}</h3>
+            <div class="details-grid">
+        `;
+        
+        // Add temperature data if available
+        if (this.datasets.temperature[destCode]) {
+            const temp = this.datasets.temperature[destCode][this.currentMonth];
+            const month = new Date(0, this.currentMonth - 1).toLocaleString('en-US', { month: 'long' });
             detailHTML += `
-                <div class="data-section">
-                    <h4>Temperature</h4>
-                    <p><strong>Average Temperature:</strong> ${temp !== undefined ? temp.toFixed(1) + "°C" : "Data not available"}</p>
-                    <p><strong>Month:</strong> ${new Date(0, this.currentMonth - 1).toLocaleString('en-US', { month: 'long' })}</p>
+                <div class="detail-item">
+                    <div class="detail-label">🌡️ Temperature in ${month}</div>
+                    <div class="detail-value">${temp !== undefined ? temp.toFixed(1) + "°C" : "Data not available"}</div>
                 </div>
             `;
         }
-
-        // Tourism popularity data
-        if (this.datasets.popularity[countryCode]) {
-            const popularity = this.datasets.popularity[countryCode];
+        
+        // Add popularity/tourism data if available
+        if (this.datasets.popularity[destCode]) {
+            const popularity = this.datasets.popularity[destCode];
             detailHTML += `
-                <div class="data-section">
-                    <h4>Tourism Popularity</h4>
-                    <p><strong>Score:</strong> ${popularity !== undefined ? popularity.toFixed(2) : "Data not available"}</p>
+                <div class="detail-item">
+                    <div class="detail-label">👥 Annual Tourists</div>
+                    <div class="detail-value">${popularity !== undefined ? Number(popularity).toLocaleString() : "N/A"}</div>
                 </div>
             `;
         }
-
-        // Budget data
-        if (this.datasets.budget[countryCode]) {
-            const budget = this.datasets.budget[countryCode];
+        
+        // Add budget data if available
+        if (this.datasets.budget[destCode]) {
+            const budget = this.datasets.budget[destCode];
             detailHTML += `
-                <div class="data-section">
-                    <h4>Trip Budget</h4>
-                    <p><strong>Average Cost:</strong> ${budget !== undefined ? "$" + budget.toFixed(0) : "Data not available"}</p>
+                <div class="detail-item">
+                    <div class="detail-label">💰 Average Trip Cost</div>
+                    <div class="detail-value">${budget !== undefined ? "$" + budget.toFixed(0) : "N/A"}</div>
                 </div>
             `;
         }
-
-        // If no data available for any dataset
-        if (!this.datasets.temperature[countryCode] &&
-            !this.datasets.popularity[countryCode] &&
-            !this.datasets.budget[countryCode]) {
-            detailHTML += "<p>No data available for this country</p>";
+        
+        // Add hotel data if available
+        if (this.datasets.hotels && this.datasets.hotels[destCode]) {
+            detailHTML += `
+                <div class="detail-item">
+                    <div class="detail-label">🏨 Annual Hotel Guests</div>
+                    <div class="detail-value">${Number(this.datasets.hotels[destCode]).toLocaleString()}</div>
+                </div>
+            `;
         }
-
-        // Update the existing country-details div
+        
+        // Add UNESCO natural sites if available
+        if (this.datasets.natural_sites && this.datasets.natural_sites[destCode] !== undefined) {
+            detailHTML += `
+                <div class="detail-item">
+                    <div class="detail-label">🏞️ UNESCO Natural Sites</div>
+                    <div class="detail-value">${this.datasets.natural_sites[destCode]}</div>
+                </div>
+            `;
+        }
+        
+        // Add UNESCO cultural sites if available
+        if (this.datasets.cultural_sites && this.datasets.cultural_sites[destCode] !== undefined) {
+            detailHTML += `
+                <div class="detail-item">
+                    <div class="detail-label">🏛️ UNESCO Cultural Sites</div>
+                    <div class="detail-value">${this.datasets.cultural_sites[destCode]}</div>
+                </div>
+            `;
+        }
+        
+        // Close the details grid and destination details div
+        detailHTML += `
+            </div>
+        </div>
+    `;
+    
+        // Update the details div
         d3.select(".country-details").html(detailHTML);
+    }
+    
+    // Add a method to calculate distance between two countries
+    calculateDistance(country1, country2) {
+        // Calculate centroids of both countries
+        const centroid1 = d3.geoCentroid(country1);
+        const centroid2 = d3.geoCentroid(country2);
+        
+        // Convert to radians
+        const lon1 = centroid1[0] * Math.PI / 180;
+        const lat1 = centroid1[1] * Math.PI / 180;
+        const lon2 = centroid2[0] * Math.PI / 180;
+        const lat2 = centroid2[1] * Math.PI / 180;
+        
+        // Haversine formula to calculate great-circle distance
+        const earthRadius = 6371; // in km
+        const dLon = lon2 - lon1;
+        const dLat = lat2 - lat1;
+        
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1) * Math.cos(lat2) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+                  
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return earthRadius * c;
     }
 
     createLegend(selectedDataset) {
