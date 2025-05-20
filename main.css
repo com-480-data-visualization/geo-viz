@@ -196,7 +196,7 @@ body {
     margin-bottom: 20px;
 }
 
-.country-details {
+.trip-details {
     margin-top: 20px;
     padding: 15px;
     background-color: #fff;
@@ -207,12 +207,12 @@ body {
     padding-right: 15px; /* Increase right padding since we no longer have scrollbar */
 }
 
-.country-details h3 {
+.trip-details h3 {
     margin: 0 0 8px 0;
     font-size: 1.1rem;
 }
 
-.country-details p {
+.trip-details p {
     margin: 0;
     font-size: 1rem;
 }
