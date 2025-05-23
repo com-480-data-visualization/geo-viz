@@ -19,11 +19,6 @@ export default class WorldMap {
                 .attr("stroke-width", strokeWidth);
         });
         this.svg.call(this.zoom); // Apply zoom behavior to the SVG 
-        d3.select("#reset-zoom").on("click", ()=> {
-            this.svg.transition()
-                .duration(750)
-                .call(this.zoom.transform, d3.zoomIdentity);
-        });
         this.path = d3.geoPath();
         this.projection = d3.geoMercator()
         .scale(140) // Adjust scale for better fit
@@ -70,18 +65,15 @@ export default class WorldMap {
         this.selectionMode = "home"; // Start with selecting home country
         
         // Add a toggle button for selection mode
-        d3.select(".map-container")
+        d3.select(".controls-container")
             .append("div")
             .attr("class", "selection-controls")
             .html(`
                 <button id="toggle-selection" class="selection-btn home-mode">
-                    Currently selecting: <span>Home Country</span>
+                    Selecting: <span>Home Country</span>
                 </button>
-                <button id="reset-selection" class="selection-btn">Reset Selection</button>
             `);
-            
         d3.select("#toggle-selection").on("click", () => this.toggleSelectionMode());
-        d3.select("#reset-selection").on("click", () => this.resetCountrySelection());
     }
     
     // Add a method to toggle between home and destination selection
@@ -99,6 +91,12 @@ export default class WorldMap {
     }
     
     resetCountrySelection() {
+        // Reset zoom
+        this.svg.transition()
+            .duration(750)
+            .call(this.zoom.transform, d3.zoomIdentity);
+
+        // Clear selected countries
         this.homeCountry = null;
         this.destinationCountry = null;
         this.container.selectAll("path")
@@ -107,8 +105,20 @@ export default class WorldMap {
             .classed("destination-country", false)
             .attr("stroke", null)
             .attr("stroke-width", null);
+
+        // Reset selection mode to home
+        this.selectionMode = "home";
+        const button = d3.select("#toggle-selection");
+        button.classed("home-mode", true).classed("destination-mode", false);
+        button.select("span").text("Home Country");
             
-        d3.select(".country-details").html("<h3>Country Details</h3><p>Select a home country and destination to see trip details.</p>");
+        // display instructions header and trip details back
+        d3.select(".instructions-header").style("display", "block");
+        d3.select(".trip-details").html(`
+            <h3>Trip Details</h3>
+            <p>Select a home country and a destination country to see trip details.</p>
+        `);
+
     }
 
     // Function to center the map on a selected country
@@ -162,8 +172,12 @@ export default class WorldMap {
             this.toggleSelectionMode();
         } else {
             // If selecting destination country
+            // If no home country is set, switch back to home selection mode
+            if (!this.homeCountry) {
+                this.toggleSelectionMode();
+            }
+            // Can't select same country as both home and destination
             if (this.homeCountry && this.homeCountry.id === countryCode) {
-                // Can't select same country as both home and destination
                 return;
             }
             
@@ -193,6 +207,9 @@ export default class WorldMap {
     
     // Add a method to calculate and display trip details
     displayTripDetails() {
+        // Hide instructions header
+        d3.select(".instructions-header").style("display", "none");
+
         const homeCode = this.homeCountry.id;
         const homeName = this.homeCountry.properties.name;
         const destCode = this.destinationCountry.id;
@@ -253,7 +270,10 @@ export default class WorldMap {
         
         detailHTML += `
         <div class="destination-details">
-            <h3>Destination Information: ${destName}</h3>
+            <div class"destination-details-header">
+                <h3>Destination Information: ${destName}</h3>
+                <button class="expand-details">Expand Details</button>
+            </div>
             <div class="details-grid">
         `;
         
@@ -328,7 +348,18 @@ export default class WorldMap {
     `;
     
         // Update the details div
-        d3.select(".country-details").html(detailHTML);
+        d3.select(".trip-details").html(detailHTML);
+        // Add event listener to expand/collapse details
+        d3.select(".expand-details").on("click", () => {
+            const details = d3.select(".trip-details");
+            const isExpanded = !details.classed("expanded");
+            details.classed("expanded", isExpanded);
+            if (isExpanded) {
+                details.html(expanded_details);
+            } else {
+                details.html(detailHTML);
+            }
+        });
     }
     
     // Add a method to calculate distance between two countries
@@ -496,6 +527,19 @@ export default class WorldMap {
                     d3.select(this)
                         .attr("stroke", null)
                         .attr("stroke-width", null);
+                }
+            });
+
+        // Add transparent background rect to catch ocean clicks
+        this.container.insert("rect", ":first-child")
+            .attr("width", this.width)
+            .attr("height", this.height)
+            .attr("fill", "transparent")
+            .style("pointer-events", "all")
+            .on("click", (event) => {
+                // Only reset if the click is not on a country path
+                if (event.target.tagName !== "path") {
+                    this.resetCountrySelection();
                 }
             });
     

@@ -49,7 +49,7 @@ body {
 }
 
 .map-container {
-    width: 65%; /* Adjust to match the new info-panel width */
+    width: 65%;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -63,6 +63,7 @@ body {
     gap: 10px; /* Space between elements */
     align-items: center;
     width: 100%; /* Ensure the container spans the full width */
+    height: 8%;
     margin-bottom: 1px; /* Add spacing below the controls */
     padding-left: 50px;
     padding-right: 50px;
@@ -121,11 +122,11 @@ body {
 
 #country-search {
     width: 100%;
-    padding: 8px;
+    height: 40px;
     font-size: 1rem;
     border: 1px solid #ccc;
     border-radius: 5px;
-    box-sizing: border-box;
+    box-sizing:border-box;
 }
 
 .dropdown-list {
@@ -166,10 +167,11 @@ body {
 }
 
 #map-title {
-    font-size: 1.5rem;
+    font-size: 1.05rem;
     text-align: center;
     margin-top: 0px;
     margin-bottom:0px;
+    height: 4%;
 }
 
 .info-panel {
@@ -196,7 +198,7 @@ body {
     margin-bottom: 20px;
 }
 
-.country-details {
+.trip-details {
     margin-top: 20px;
     padding: 15px;
     background-color: #fff;
@@ -207,12 +209,12 @@ body {
     padding-right: 15px; /* Increase right padding since we no longer have scrollbar */
 }
 
-.country-details h3 {
+.trip-details h3 {
     margin: 0 0 8px 0;
     font-size: 1.1rem;
 }
 
-.country-details p {
+.trip-details p {
     margin: 0;
     font-size: 1rem;
 }
@@ -254,7 +256,7 @@ body {
 }
 
 .world-map-container {
-    height:100%;
+    height:85%;
     width:100%;
     display:flex;
     flex-direction: row;
