@@ -65,18 +65,15 @@ export default class WorldMap {
         this.selectionMode = "home"; // Start with selecting home country
         
         // Add a toggle button for selection mode
-        d3.select(".map-container")
+        d3.select(".controls-container")
             .append("div")
             .attr("class", "selection-controls")
             .html(`
                 <button id="toggle-selection" class="selection-btn home-mode">
-                    Currently selecting: <span>Home Country</span>
+                    Selecting: <span>Home Country</span>
                 </button>
-                <button id="reset-selection" class="selection-btn">Reset Selection</button>
             `);
-            
         d3.select("#toggle-selection").on("click", () => this.toggleSelectionMode());
-        d3.select("#reset-selection").on("click", () => this.resetCountrySelection());
     }
     
     // Add a method to toggle between home and destination selection
@@ -175,8 +172,12 @@ export default class WorldMap {
             this.toggleSelectionMode();
         } else {
             // If selecting destination country
+            // If no home country is set, switch back to home selection mode
+            if (!this.homeCountry) {
+                this.toggleSelectionMode();
+            }
+            // Can't select same country as both home and destination
             if (this.homeCountry && this.homeCountry.id === countryCode) {
-                // Can't select same country as both home and destination
                 return;
             }
             
@@ -269,7 +270,10 @@ export default class WorldMap {
         
         detailHTML += `
         <div class="destination-details">
-            <h3>Destination Information: ${destName}</h3>
+            <div class"destination-details-header">
+                <h3>Destination Information: ${destName}</h3>
+                <button class="expand-details">Expand Details</button>
+            </div>
             <div class="details-grid">
         `;
         
@@ -345,6 +349,17 @@ export default class WorldMap {
     
         // Update the details div
         d3.select(".trip-details").html(detailHTML);
+        // Add event listener to expand/collapse details
+        d3.select(".expand-details").on("click", () => {
+            const details = d3.select(".trip-details");
+            const isExpanded = !details.classed("expanded");
+            details.classed("expanded", isExpanded);
+            if (isExpanded) {
+                details.html(expanded_details);
+            } else {
+                details.html(detailHTML);
+            }
+        });
     }
     
     // Add a method to calculate distance between two countries
