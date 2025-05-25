@@ -167,7 +167,7 @@ body {
 }
 
 #map-title {
-    font-size: 1.05rem;
+    font-size: 3vh;
     text-align: center;
     margin-top: 0px;
     margin-bottom:0px;
@@ -430,4 +430,16 @@ body {
     font-size: 1em;
     text-align: right;
     color: #333;
+}
+
+.country-charts-page {
+    display: none; /* Hidden by default */
+    height: 100vh;
+    flex-direction:row;
+    align-items: center;
+    padding: 20px;
+}
+
+.country-charts-page svg {
+    fill:#007BFF;
 }

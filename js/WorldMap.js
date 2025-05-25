@@ -1,3 +1,5 @@
+import updateCountryCharts from './charts.js';
+
 export default class WorldMap {
     constructor(topo, datasets) {
         this.topo = topo;
@@ -272,7 +274,7 @@ export default class WorldMap {
         <div class="destination-details">
             <div class"destination-details-header">
                 <h3>Destination Information: ${destName}</h3>
-                <button class="expand-details">Expand Details</button>
+                <button id="country-charts-button">Show additional details</button>
             </div>
             <div class="details-grid">
         `;
@@ -350,15 +352,14 @@ export default class WorldMap {
         // Update the details div
         d3.select(".trip-details").html(detailHTML);
         // Add event listener to expand/collapse details
-        d3.select(".expand-details").on("click", () => {
-            const details = d3.select(".trip-details");
-            const isExpanded = !details.classed("expanded");
-            details.classed("expanded", isExpanded);
-            if (isExpanded) {
-                details.html(expanded_details);
-            } else {
-                details.html(detailHTML);
-            }
+        d3.select("#country-charts-button").on("click", () => {
+            const chartsPage = d3.select(".country-charts-page");
+            // Update country charts page
+            updateCountryCharts(destCode, destName, this.datasets);
+            // Display the charts page
+            chartsPage.style("display", "block");
+            // Scroll to charts page smoothly
+            chartsPage.node().scrollIntoView({ behavior: "smooth" });
         });
     }
     

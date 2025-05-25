@@ -11,7 +11,7 @@ d3.select("#start-button").on("click", () => {
     // Wait ~500ms (scroll duration) before hiding the home page
     setTimeout(() => {
         d3.select('.home-page').style('display', 'none');
-    }, 600); // Adjust if needed
+    }, 600);
 });
 
 
@@ -72,7 +72,6 @@ const cultural_sites_promise = d3.csv("https://raw.githubusercontent.com/com-480
         });
         return cultural_sites_data;
     });
-
 // Draw map when promises return
 Promise.all([map_promise, temperature_promise, popularity_promise, budget_promise,
     hotels_promise, natural_sites_promise, cultural_sites_promise
