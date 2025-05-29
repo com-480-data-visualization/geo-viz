@@ -108,6 +108,9 @@ export default class WorldMap {
             .attr("stroke", null)
             .attr("stroke-width", null);
 
+        // Hide country charts page
+        d3.select(".country-charts-page").style("display", "none");
+
         // Reset selection mode to home
         this.selectionMode = "home";
         const button = d3.select("#toggle-selection");
@@ -155,19 +158,19 @@ export default class WorldMap {
         if (this.selectionMode === "home") {
             // If selecting home country, clear previous home selection
             this.container.selectAll("path.home-country")
-                .classed("home-country", false)
-                .classed("selected-country", false)
-                .attr("stroke", null)
-                .attr("stroke-width", null);
-                
+            .classed("home-country", false)
+            .classed("selected-country", false)
+            .attr("stroke", null)
+            .attr("stroke-width", null);
+            
             // Set new home country
             this.homeCountry = country;
             const countryPath = this.container.select(`path[data-id="${countryCode}"]`);
             if (!countryPath.empty()) {
                 countryPath.classed("home-country", true)
-                    .classed("selected-country", true)
-                    .attr("stroke", "#0066CC")
-                    .attr("stroke-width", "2px");
+                .classed("selected-country", true)
+                .attr("stroke", "#0066CC")
+                .attr("stroke-width", "2px");
             }
             
             // Switch to destination selection mode
@@ -182,22 +185,24 @@ export default class WorldMap {
             if (this.homeCountry && this.homeCountry.id === countryCode) {
                 return;
             }
+            // Update country charts with the selected destination
+            updateCountryCharts(countryCode, countryName, this.datasets);
             
             // Clear previous destination selection
             this.container.selectAll("path.destination-country")
-                .classed("destination-country", false)
-                .classed("selected-country", false)
-                .attr("stroke", null)
-                .attr("stroke-width", null);
-                
+            .classed("destination-country", false)
+            .classed("selected-country", false)
+            .attr("stroke", null)
+            .attr("stroke-width", null);
+            
             // Set new destination country
             this.destinationCountry = country;
             const countryPath = this.container.select(`path[data-id="${countryCode}"]`);
             if (!countryPath.empty()) {
                 countryPath.classed("destination-country", true)
-                    .classed("selected-country", true)
-                    .attr("stroke", "#CC0000")
-                    .attr("stroke-width", "2px");
+                .classed("selected-country", true)
+                .attr("stroke", "#CC0000")
+                .attr("stroke-width", "2px");
             }
         }
         
