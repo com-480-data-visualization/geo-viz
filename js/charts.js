@@ -34,7 +34,6 @@ function displayUWHList(destCode, chartsPage, datasets) {
     .text(d => d.name)
     .on("click", (event, d) => {
       window.open(d.url, "_blank"); // open in new tab
-      // or use window.location.href = d.url; to open in same tab
     });
 }
 
