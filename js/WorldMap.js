@@ -1,3 +1,5 @@
+import updateCountryCharts from './charts.js';
+
 export default class WorldMap {
     constructor(topo, datasets) {
         this.topo = topo;
@@ -106,6 +108,9 @@ export default class WorldMap {
             .attr("stroke", null)
             .attr("stroke-width", null);
 
+        // Hide country charts page
+        d3.select(".country-charts-page").style("display", "none");
+
         // Reset selection mode to home
         this.selectionMode = "home";
         const button = d3.select("#toggle-selection");
@@ -153,19 +158,19 @@ export default class WorldMap {
         if (this.selectionMode === "home") {
             // If selecting home country, clear previous home selection
             this.container.selectAll("path.home-country")
-                .classed("home-country", false)
-                .classed("selected-country", false)
-                .attr("stroke", null)
-                .attr("stroke-width", null);
-                
+            .classed("home-country", false)
+            .classed("selected-country", false)
+            .attr("stroke", null)
+            .attr("stroke-width", null);
+            
             // Set new home country
             this.homeCountry = country;
             const countryPath = this.container.select(`path[data-id="${countryCode}"]`);
             if (!countryPath.empty()) {
                 countryPath.classed("home-country", true)
-                    .classed("selected-country", true)
-                    .attr("stroke", "#0066CC")
-                    .attr("stroke-width", "2px");
+                .classed("selected-country", true)
+                .attr("stroke", "#0066CC")
+                .attr("stroke-width", "2px");
             }
             
             // Switch to destination selection mode
@@ -180,22 +185,24 @@ export default class WorldMap {
             if (this.homeCountry && this.homeCountry.id === countryCode) {
                 return;
             }
+            // Update country charts with the selected destination
+            updateCountryCharts(countryCode, countryName, this.datasets);
             
             // Clear previous destination selection
             this.container.selectAll("path.destination-country")
-                .classed("destination-country", false)
-                .classed("selected-country", false)
-                .attr("stroke", null)
-                .attr("stroke-width", null);
-                
+            .classed("destination-country", false)
+            .classed("selected-country", false)
+            .attr("stroke", null)
+            .attr("stroke-width", null);
+            
             // Set new destination country
             this.destinationCountry = country;
             const countryPath = this.container.select(`path[data-id="${countryCode}"]`);
             if (!countryPath.empty()) {
                 countryPath.classed("destination-country", true)
-                    .classed("selected-country", true)
-                    .attr("stroke", "#CC0000")
-                    .attr("stroke-width", "2px");
+                .classed("selected-country", true)
+                .attr("stroke", "#CC0000")
+                .attr("stroke-width", "2px");
             }
         }
         
@@ -272,7 +279,7 @@ export default class WorldMap {
         <div class="destination-details">
             <div class"destination-details-header">
                 <h3>Destination Information: ${destName}</h3>
-                <button class="expand-details">Expand Details</button>
+                <button id="country-charts-button">Show additional details</button>
             </div>
             <div class="details-grid">
         `;
@@ -350,15 +357,14 @@ export default class WorldMap {
         // Update the details div
         d3.select(".trip-details").html(detailHTML);
         // Add event listener to expand/collapse details
-        d3.select(".expand-details").on("click", () => {
-            const details = d3.select(".trip-details");
-            const isExpanded = !details.classed("expanded");
-            details.classed("expanded", isExpanded);
-            if (isExpanded) {
-                details.html(expanded_details);
-            } else {
-                details.html(detailHTML);
-            }
+        d3.select("#country-charts-button").on("click", () => {
+            const chartsPage = d3.select(".country-charts-page");
+            // Update country charts page
+            updateCountryCharts(destCode, destName, this.datasets);
+            // Display the charts page
+            chartsPage.style("display", "block");
+            // Scroll to charts page smoothly
+            chartsPage.node().scrollIntoView({ behavior: "smooth" });
         });
     }
     

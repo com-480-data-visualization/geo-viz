@@ -167,7 +167,7 @@ body {
 }
 
 #map-title {
-    font-size: 1.05rem;
+    font-size: 3vh;
     text-align: center;
     margin-top: 0px;
     margin-bottom:0px;
@@ -430,4 +430,56 @@ body {
     font-size: 1em;
     text-align: right;
     color: #333;
+}
+
+.country-charts-page {
+    display: none; /* Hidden by default */
+    height: 100vh;
+    flex-direction:row;
+    align-items: center;
+    padding: 20px;
+}
+
+.country-charts-page svg {
+    fill:#007BFF;
+}
+
+.country-charts-content {
+    display: flex;
+    flex-direction: row;
+    gap: 5%;
+}
+
+.country-charts-page h1 {
+    font-size: 2rem;
+    margin-bottom: 0px;
+}
+
+.country-charts-page h3 {
+    font-size: 1.5rem;
+    margin-top: 5px;
+    margin-bottom: 0px;
+}
+
+#temperature-chart svg{
+    height: 60vh;
+}
+
+#uwh-list {
+    flex-grow: 1;
+    height: 60vh;
+    border: 2px solid #ccc;
+    overflow-y: scroll;
+    font-family: sans-serif;
+    border-radius: 5px;
+    padding: 10px;
+}
+.entry {
+    margin-bottom: 5px;
+    padding: 5px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+.entry:hover {
+    background-color: #f4f4f4;
 }

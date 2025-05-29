@@ -11,7 +11,7 @@ d3.select("#start-button").on("click", () => {
     // Wait ~500ms (scroll duration) before hiding the home page
     setTimeout(() => {
         d3.select('.home-page').style('display', 'none');
-    }, 600); // Adjust if needed
+    }, 600);
 });
 
 
@@ -72,10 +72,13 @@ const cultural_sites_promise = d3.csv("https://raw.githubusercontent.com/com-480
         });
         return cultural_sites_data;
     });
-
+const sites_by_country_promise = d3.json("datasets/processed/uwh_sites_by_code.json")
+    .then((data) => {
+        return data;
+    });
 // Draw map when promises return
 Promise.all([map_promise, temperature_promise, popularity_promise, budget_promise,
-    hotels_promise, natural_sites_promise, cultural_sites_promise
+    hotels_promise, natural_sites_promise, cultural_sites_promise, sites_by_country_promise
 ]).then((results) => {
     console.log("Data loaded");
     let topo = results[0];
@@ -85,7 +88,8 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
         budget: results[3],
         hotels: results[4],
         natural_sites: results[5],
-        cultural_sites: results[6]
+        cultural_sites: results[6],
+        sites_by_country: results[7]
     };
 
     const world_map = new WorldMap(topo, datasets);
