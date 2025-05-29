@@ -483,3 +483,7 @@ body {
 .entry:hover {
     background-color: #f4f4f4;
 }
+
+.uwh-site {
+    cursor: pointer;
+}

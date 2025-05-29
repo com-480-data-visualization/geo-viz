@@ -624,7 +624,8 @@ export default class WorldMap {
                         .attr("stroke", null)
                         .attr("stroke-width", null);
                 }
-            });
+            })
+            .append("title").text((d) => d.properties.name); // Add country name as text;
 
         // Add transparent background rect to catch ocean clicks
         this.container.insert("rect", ":first-child")
