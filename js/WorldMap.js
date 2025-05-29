@@ -10,6 +10,10 @@ export default class WorldMap {
         .attr("viewBox", `0 0 ${this.width} ${this.height}`) // Set the viewBox for responsive scaling
         .attr("preserveAspectRatio", "xMidYMid meet"); // Ensure the map scales properly
         this.container = this.svg.append("g");
+        this.siteRadius = 5; // Initial radius for site points
+        this.minSiteRadius = 0.5; // Minimum radius for site points
+        this.siteStrokeWidth = 0.5; // Initial stroke width for site points
+        this.minSiteStrokeWidth = 0.1; // Minimum stroke width for site points
         this.zoom_transform = d3.zoomIdentity; // Initialize zoom transform
         this.zoom = d3.zoom()
         .scaleExtent([1, 100]) // Set zoom limits
@@ -19,6 +23,11 @@ export default class WorldMap {
             const strokeWidth = 1.5 / event.transform.k;
             this.container.selectAll("path.selected-country")
                 .attr("stroke-width", strokeWidth);
+            this.siteRadius = d3.max([5 / event.transform.k, this.minSiteRadius]) // Adjust site radius based on zoom
+            this.siteStrokeWidth = d3.max([2 / event.transform.k, this.minSiteStrokeWidth])
+            this.container.selectAll(".uwh-site")
+                .attr("r",  this.siteRadius)
+                .attr("stroke-width", this.siteStrokeWidth);
         });
         this.svg.call(this.zoom); // Apply zoom behavior to the SVG 
         this.path = d3.geoPath();
@@ -98,16 +107,19 @@ export default class WorldMap {
             .duration(750)
             .call(this.zoom.transform, d3.zoomIdentity);
 
-        // Clear selected countries
-        this.homeCountry = null;
-        this.destinationCountry = null;
-        this.container.selectAll("path")
+            
+            // Clear selected countries
+            this.homeCountry = null;
+            this.destinationCountry = null;
+            this.container.selectAll("path")
             .classed("selected-country", false)
             .classed("home-country", false)
             .classed("destination-country", false)
             .attr("stroke", null)
             .attr("stroke-width", null);
-
+            
+        // Hide UNESCO World Heritage sites
+        this.container.selectAll(".uwh-site").remove();
         // Hide country charts page
         d3.select(".country-charts-page").style("display", "none");
 
@@ -140,6 +152,10 @@ export default class WorldMap {
         const k = newScale / this.initialScale;
         const tx = newTranslateX - this.initialTranslate[0] * k;
         const ty = newTranslateY - this.initialTranslate[1] * k;
+        // Reset the projection to initial scale and translate
+        this.projection
+            .scale(this.initialScale)
+            .translate(this.initialTranslate);
         // Apply the transform with a transition
         this.svg.transition()
            .duration(750)
@@ -185,8 +201,6 @@ export default class WorldMap {
             if (this.homeCountry && this.homeCountry.id === countryCode) {
                 return;
             }
-            // Update country charts with the selected destination
-            updateCountryCharts(countryCode, countryName, this.datasets);
             
             // Clear previous destination selection
             this.container.selectAll("path.destination-country")
@@ -204,6 +218,12 @@ export default class WorldMap {
                 .attr("stroke", "#CC0000")
                 .attr("stroke-width", "2px");
             }
+
+            // Display UNESCO World Heritage sites for the selected destination
+            this.displayUWHSites(countryCode);
+
+            // Update country charts with the selected destination
+            updateCountryCharts(countryCode, countryName, this.datasets);
         }
         
         // Display details if both countries are selected
@@ -462,6 +482,76 @@ export default class WorldMap {
         .attr("class", "legend-axis")
         .attr("transform", `translate(${margin.left}, ${margin.top})`)
         .call(legendAxis);        
+    }
+
+    displayUWHSites(countryCode) {
+        // Remove any existing site circles
+        this.container.selectAll(".uwh-site").remove();
+        // Get the sites data for the selected country
+        const sites = this.datasets["sites_by_country"][countryCode];
+        // If there are sites, display them
+        if (sites && sites.length > 0) {
+            sites.forEach(site => {
+                const lon = site["longitude"];
+                const lat = site["latitude"];
+                const [x, y] = this.projection([lon, lat]);
+                const fill = site["category"] === "Natural" ? "green" : "purple";
+                const circle = this.container.append("circle")
+                    .attr("class", "uwh-site")
+                    .attr("cx", x)
+                    .attr("cy", y)
+                    .attr("r", this.siteRadius)
+                    .attr("fill", fill)
+                    .attr("stroke", "black")
+                    .attr("stroke-width", this.siteStrokeWidth)
+                    .on("click", () => {
+                        window.open(site["http_url"], "_blank"); // Open site URL in a new tab
+                    })
+                    .on("mouseover", (event) => {
+                        // Increase radius on hover
+                        d3.select(event.currentTarget)
+                            .attr("r", this.siteRadius * 2)
+                            .attr("stroke-width", this.siteStrokeWidth * 2);
+
+                        // Remove any existing image preview
+                        d3.select("#site-image-preview").remove();
+
+                        // Get mouse position relative to the SVG
+                        const [mouseX, mouseY] = d3.pointer(event, this.svg.node());
+
+                        // Append a div to the body for the image preview
+                        d3.select("body")
+                            .append("div")
+                            .attr("id", "site-image-preview")
+                            .style("position", "absolute")
+                            .style("left", `${event.clientX + 10}px`)
+                            .style("top", `${event.clientY - 80}px`)
+                            .style("background", "rgba(255,255,255,0.95)")
+                            .style("border", "1px solid #ccc")
+                            .style("padding", "4px")
+                            .style("border-radius", "4px")
+                            .style("box-shadow", "0 2px 8px rgba(0,0,0,0.15)")
+                            .style("pointer-events", "none")
+                            .html(`<img src="${site["image_url"]}" alt="Site image" style="max-width:120px; max-height:80px; display:block;">`);
+                    })
+                    .on("mousemove", (event) => {
+                        // Move the image preview with the mouse
+                        d3.select("#site-image-preview")
+                            .style("left", `${event.clientX + 10}px`)
+                            .style("top", `${event.clientY - 80}px`);
+                    })
+                    .on("mouseout", (event) => {
+                        d3.select(event.currentTarget)
+                            .attr("r", this.siteRadius)
+                            .attr("stroke-width", this.siteStrokeWidth); // Reset radius on mouse out
+
+                        // Remove the image preview
+                        d3.select("#site-image-preview").remove();
+                    });
+
+                circle.append("title").text(site["site"]);
+            });
+        }
     }
 
     // Function to update the map based on the selected dataset
