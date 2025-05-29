@@ -72,7 +72,7 @@ const cultural_sites_promise = d3.csv("https://raw.githubusercontent.com/com-480
         });
         return cultural_sites_data;
     });
-const sites_by_country_promise = d3.json("datasets/processed/uwh_sites_by_code.json")
+const sites_by_country_promise = d3.json("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/uwh_sites_by_code.json")
     .then((data) => {
         return data;
     });
