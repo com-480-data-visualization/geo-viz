@@ -185,8 +185,6 @@ export default class WorldMap {
             if (this.homeCountry && this.homeCountry.id === countryCode) {
                 return;
             }
-            // Update country charts with the selected destination
-            updateCountryCharts(countryCode, countryName, this.datasets);
             
             // Clear previous destination selection
             this.container.selectAll("path.destination-country")
@@ -204,6 +202,9 @@ export default class WorldMap {
                 .attr("stroke", "#CC0000")
                 .attr("stroke-width", "2px");
             }
+
+            // Update country charts with the selected destination
+            updateCountryCharts(countryCode, countryName, this.datasets);
         }
         
         // Display details if both countries are selected
@@ -462,6 +463,11 @@ export default class WorldMap {
         .attr("class", "legend-axis")
         .attr("transform", `translate(${margin.left}, ${margin.top})`)
         .call(legendAxis);        
+    }
+
+    displayCountryUWHSites(countryCode) {
+        // Get the sites data for the selected country
+        const sites = this.datasets["sites_by_country"][countryCode];
     }
 
     // Function to update the map based on the selected dataset
