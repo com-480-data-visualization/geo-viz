@@ -6,7 +6,7 @@ export default function updateCountryCharts(destCode, destName, datasets) {
 }
 
 function displayUWHList(destCode, chartsPage, datasets) {
-  const uwhList = datasets["sites_by_country"][destCode];
+  const uwhList = datasets["sitesByCountry"][destCode];
   // Check if the country has UWH
   if (uwhList === undefined || uwhList.length === 0) {
     chartsPage.select("#uwh-list").text("No UNESCO World Heritage Site available for this country.");
@@ -31,9 +31,9 @@ function displayUWHList(destCode, chartsPage, datasets) {
     .enter()
     .append("div")
     .attr("class", "entry")
-    .text(d => d.name)
-    .on("click", (event, d) => {
-      window.open(d.url, "_blank"); // open in new tab
+    .text(site => site.name)
+    .on("click", (event, site) => {
+      window.open(site.url, "_blank"); // open in new tab
     });
 }
 

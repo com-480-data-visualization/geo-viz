@@ -1,6 +1,6 @@
 import WorldMap from './js/WorldMap.js';
 
-// Smooth scrolling to the map section
+// Smooth scrolling to the map section on start button click
 d3.select("#start-button").on("click", () => {
     // Show the map section first (so we can scroll to it)
     d3.select('.map-section').style('display', 'flex');
@@ -16,69 +16,69 @@ d3.select("#start-button").on("click", () => {
 
 
 // Load data through promises
-const map_promise = d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
+const mapPromise = d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
     .then((topojson) => topojson.features);
-const temperature_promise = d3.csv("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/temperatures.csv")
+const temperaturePromise = d3.csv("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/temperatures.csv")
     .then((data) => {
-        let temperature_data = {};
+        let temperatureData = {};
         data.forEach((row) => {
             const country = row["Code"];
             const month = parseInt(row["Month"]);
             const temperature = parseFloat(row["Temperature"]);
-            if (!temperature_data[country]) {
-                temperature_data[country] = {};
+            if (!temperatureData[country]) {
+                temperatureData[country] = {};
             }
-            temperature_data[country][month] = temperature;
+            temperatureData[country][month] = temperature;
         });
-        return temperature_data;
+        return temperatureData;
     });
-const popularity_promise = d3.csv("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/popularity.csv")
+const popularityPromise = d3.csv("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/popularity.csv")
     .then((data) => {
-        let popularity_data = {};
+        let popularityData = {};
         data.forEach((row) => {
-            popularity_data[row["Code"]] = parseFloat(row["Popularity"]);
+            popularityData[row["Code"]] = parseFloat(row["Popularity"]);
         });
-        return popularity_data;
+        return popularityData;
     });
-const budget_promise = d3.csv("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/budget.csv")
+const budgetPromise = d3.csv("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/budget.csv")
     .then((data) => {
-        let budget_data = {};
+        let budgetData = {};
         data.forEach((row) => {
-            budget_data[row["Code"]] = parseFloat(row["Budget"]);
+            budgetData[row["Code"]] = parseFloat(row["Budget"]);
         });
-        return budget_data;
+        return budgetData;
     });
-const hotels_promise = d3.csv("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/hotels.csv")
+const hotelsPromise = d3.csv("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/hotels.csv")
     .then((data) => {
-        let hotels_data = {};
+        let hotelsData = {};
         data.forEach((row) => {
-            hotels_data[row["Code"]] = parseFloat(row["Hotel guests"]);
+            hotelsData[row["Code"]] = parseFloat(row["Hotel guests"]);
         });
-        return hotels_data;
+        return hotelsData;
     });
-const natural_sites_promise = d3.csv("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/natural_sites.csv")
+const naturalSitesPromise = d3.csv("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/natural_sites.csv")
     .then((data) => {
-        let natural_sites_data = {};
+        let naturalSitesData = {};
         data.forEach((row) => {
-            natural_sites_data[row["Code"]] = parseFloat(row["Natural sites"]);
+            naturalSitesData[row["Code"]] = parseFloat(row["Natural sites"]);
         });
-        return natural_sites_data;
+        return naturalSitesData;
     });
-const cultural_sites_promise = d3.csv("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/cultural_sites.csv")
+const culturalSitesPromise = d3.csv("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/cultural_sites.csv")
     .then((data) => {
-        let cultural_sites_data = {};
+        let cuturalSitesData = {};
         data.forEach((row) => {
-            cultural_sites_data[row["Code"]] = parseFloat(row["Cultural sites"]);
+            cuturalSitesData[row["Code"]] = parseFloat(row["Cultural sites"]);
         });
-        return cultural_sites_data;
+        return cuturalSitesData;
     });
-const sites_by_country_promise = d3.json("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/uwh_sites_by_code.json")
+const sitesByCountryPromise = d3.json("https://raw.githubusercontent.com/com-480-data-visualization/geo-viz/refs/heads/master/datasets/processed/uwh_sites_by_code.json")
     .then((data) => {
         return data;
     });
 // Draw map when promises return
-Promise.all([map_promise, temperature_promise, popularity_promise, budget_promise,
-    hotels_promise, natural_sites_promise, cultural_sites_promise, sites_by_country_promise
+Promise.all([mapPromise, temperaturePromise, popularityPromise, budgetPromise,
+    hotelsPromise, naturalSitesPromise, culturalSitesPromise, sitesByCountryPromise
 ]).then((results) => {
     console.log("Data loaded");
     let topo = results[0];
@@ -87,20 +87,20 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
         popularity: results[2],
         budget: results[3],
         hotels: results[4],
-        natural_sites: results[5],
-        cultural_sites: results[6],
-        sites_by_country: results[7]
+        naturalSites: results[5],
+        culturalSites: results[6],
+        sitesByCountry: results[7]
     };
 
-    const world_map = new WorldMap(topo, datasets);
+    const worldMap = new WorldMap(topo, datasets);
 
     // Initial map rendering with temperature data
-    world_map.updateMap("temperature");
+    worldMap.updateMap("temperature");
 
     // Add event listeners to dropdown buttons
     d3.selectAll(".menu-button").on("click", function () {
         const selectedDataset = d3.select(this).attr("data-map-type");
-        world_map.updateMap(selectedDataset);
+        worldMap.updateMap(selectedDataset);
     });
 
     // Update the search functionality to display country details upon confirmation
@@ -116,8 +116,8 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
             searchTimeout = setTimeout(() => {
                 // Filter matching countries
                 const matchingCountries = topo
-                    .filter((d) => d.properties.name.toLowerCase().includes(searchTerm))
-                    .map((d) => d.properties.name);
+                    .filter((country) => country.properties.name.toLowerCase().includes(searchTerm))
+                    .map((country) => country.properties.name);
 
                 // Populate the dropdown list
                 const dropdown = d3.select("#country-dropdown");
@@ -127,14 +127,14 @@ Promise.all([map_promise, temperature_promise, popularity_promise, budget_promis
                     .data(matchingCountries)
                     .enter()
                     .append("li")
-                    .text((d) => d)
+                    .text((country) => country)
                     .on("click", function (event, countryName) {
                         // Find the selected country
-                        const selectedCountry = topo.find((d) => d.properties.name === countryName);
+                        const selectedCountry = topo.find((country) => country.properties.name === countryName);
                         console.log("Selected country:", selectedCountry);
                         if (selectedCountry) {
-                            world_map.centerOnCountry(selectedCountry);
-                            world_map.selectCountry(event, selectedCountry, "temperature"); // Display details
+                            worldMap.centerOnCountry(selectedCountry);
+                            worldMap.selectCountry(selectedCountry, "temperature"); // Display details
                         }
 
                         // Hide the dropdown and clear the search input

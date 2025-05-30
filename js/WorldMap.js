@@ -14,12 +14,12 @@ export default class WorldMap {
         this.minSiteRadius = 0.5; // Minimum radius for site points
         this.siteStrokeWidth = 0.5; // Initial stroke width for site points
         this.minSiteStrokeWidth = 0.1; // Minimum stroke width for site points
-        this.zoom_transform = d3.zoomIdentity; // Initialize zoom transform
+        this.zoomTransform = d3.zoomIdentity; // Initialize zoom transform
         this.zoom = d3.zoom()
         .scaleExtent([1, 100]) // Set zoom limits
         .on("zoom", (event) => {
             this.container.attr("transform", event.transform); // Apply zoom transformation
-            this.zoom_transform = event.transform; // Update zoom transform
+            this.zoomTransform = event.transform; // Update zoom transform
             const strokeWidth = 1.5 / event.transform.k;
             this.container.selectAll("path.selected-country")
                 .attr("stroke-width", strokeWidth);
@@ -56,20 +56,20 @@ export default class WorldMap {
             }
         });
         this.colorScales = {
-            temperature: d3.scaleDiverging((t) => d3.interpolateRdBu(1 - t)), // Red for warm, blue for cold
+            temperature: d3.scaleDiverging((temp) => d3.interpolateRdBu(1 - temp)), // Red for warm, blue for cold
             popularity: d3.scaleSequential().interpolator(d3.interpolateBlues), // Blue for tourism popularity
-            budget: d3.scaleDiverging().interpolator((t) => d3.interpolateRdYlGn(1-t)), // Green for low budget, red for high budget
+            budget: d3.scaleDiverging().interpolator((budget) => d3.interpolateRdYlGn(1-budget)), // Green for low budget, red for high budget
             hotels: d3.scaleSequential().interpolator(d3.interpolateOranges), // Orange for hotel guests
-            natural_sites: d3.scaleSequential().interpolator(d3.interpolateGreens), // Green for natural sites
-            cultural_sites: d3.scaleSequential().interpolator(d3.interpolatePurples) // Purple for cultural sites
+            naturalSites: d3.scaleSequential().interpolator(d3.interpolateGreens), // Green for natural sites
+            culturalSites: d3.scaleSequential().interpolator(d3.interpolatePurples) // Purple for cultural sites
         };
         this.titles = {
             temperature: "Average Monthly Temperature",
             popularity: "Annual Number of Tourists",
             budget: "Average Trip Budget",
             hotels: "Annual Number of Hotel Guests",
-            natural_sites: "Number of UNESCO World Heritage Natural Sites",
-            cultural_sites: "Number of UNESCO World Heritage Cultural Sites"
+            naturalSites: "Number of UNESCO World Heritage Natural Sites",
+            culturalSites: "Number of UNESCO World Heritage Cultural Sites"
         };
         this.homeCountry = null;
         this.destinationCountry = null;
@@ -167,7 +167,7 @@ export default class WorldMap {
         );
     }
 
-    selectCountry(event, country) {
+    selectCountry(country) {
         const countryCode = country.id;
         const countryName = country.properties.name;
         
@@ -237,7 +237,6 @@ export default class WorldMap {
         // Hide instructions header
         d3.select(".instructions-header").style("display", "none");
 
-        const homeCode = this.homeCountry.id;
         const homeName = this.homeCountry.properties.name;
         const destCode = this.destinationCountry.id;
         const destName = this.destinationCountry.properties.name;
@@ -436,18 +435,17 @@ export default class WorldMap {
         .attr("y1", "100%") // Top to bottom
         .attr("x2", "0%")
         .attr("y2", "0%");
-        // 4. Define gradient stops (you can increase the number for smoother gradient)
-        const dataset = this.datasets[selectedDataset];
+        // 4. Define gradient stops
         const colorScale = this.colorScales[selectedDataset];
         const domain = colorScale.domain();
         const minValue = colorScale.domain()[0];
         const maxValue = domain.length > 2 ? colorScale.domain()[2] : colorScale.domain()[1];
         const range = maxValue - minValue;
         const stops = d3.range(0, 1.01, 0.1);  // 0 to 1 in steps of 0.1
-        stops.forEach(t => {
+        stops.forEach(value => {
             linearGradient.append("stop")
-                .attr("offset", `${t * 100}%`)
-                .attr("stop-color", colorScale(t * range + minValue));
+                .attr("offset", `${value * 100}%`)
+                .attr("stop-color", colorScale(value * range + minValue));
         });
         // 5. Append the gradient-filled rect
         svg.append("rect")
@@ -463,19 +461,19 @@ export default class WorldMap {
         // 7. Create and add the axis
         const legendAxis = d3.axisLeft(legendScale)
         .ticks(10)
-        .tickFormat((d) => {
+        .tickFormat((value) => {
             if (selectedDataset === "temperature") {
-                return d + "°C";
+                return value + "°C";
             } else if (selectedDataset === "budget") {
-                return "$" + d;
+                return "$" + value;
             } else if (selectedDataset === "popularity") {
-                return parseInt(d) / 1000000 + "M";
+                return parseInt(value) / 1000000 + "M";
             } else if (selectedDataset === "hotels") {
-                return parseInt(d) / 1000000 + "M";
+                return parseInt(value) / 1000000 + "M";
             } else if (selectedDataset === "natural_sites") {
-                return d;
+                return value;
             } else if (selectedDataset === "cultural_sites") {
-                return d;
+                return value;
             }
         });
         svg.append("g")
@@ -488,7 +486,7 @@ export default class WorldMap {
         // Remove any existing site circles
         this.container.selectAll(".uwh-site").remove();
         // Get the sites data for the selected country
-        const sites = this.datasets["sites_by_country"][countryCode];
+        const sites = this.datasets["sitesByCountry"][countryCode];
         // If there are sites, display them
         if (sites && sites.length > 0) {
             sites.forEach(site => {
@@ -515,9 +513,6 @@ export default class WorldMap {
 
                         // Remove any existing image preview
                         d3.select("#site-image-preview").remove();
-
-                        // Get mouse position relative to the SVG
-                        const [mouseX, mouseY] = d3.pointer(event, this.svg.node());
 
                         // Append a div to the body for the image preview
                         d3.select("body")
@@ -557,7 +552,7 @@ export default class WorldMap {
     // Function to update the map based on the selected dataset
     updateMap(selectedDataset) {
         let data = this.datasets[selectedDataset];
-        let color_scale = this.colorScales[selectedDataset];
+        let colorScale = this.colorScales[selectedDataset];
         this.projection.scale(this.initialScale); // Reset projection scale
         this.projection.translate(this.initialTranslate); // Reset projection translation
         // apply current zoom transform
@@ -566,23 +561,22 @@ export default class WorldMap {
             .call(
                 this.zoom.transform,
                 d3.zoomIdentity
-                    .translate(this.zoom_transform.x, this.zoom_transform.y)
-                    .scale(this.zoom_transform.k)
+                    .translate(this.zoomTransform.x, this.zoomTransform.y)
+                    .scale(this.zoomTransform.k)
             );
     
         // Set the domain of the color scale based on the dataset
-        let minValue, maxValue, midValue;
+        let maxValue, midValue;
         if (selectedDataset === "temperature") {
-            color_scale.domain([-20, 10, 40]);
+            colorScale.domain([-20, 10, 40]);
         } else {
-            minValue = d3.min(Object.values(data));
             maxValue = d3.max(Object.values(data));
             if (selectedDataset === "budget") {
                 midValue = d3.median(Object.values(data));
-                color_scale.domain([0, midValue, maxValue]);
+                colorScale.domain([0, midValue, maxValue]);
             }
             else {
-                color_scale.domain([0, maxValue]);
+                colorScale.domain([0, maxValue]);
             }
         }
     
@@ -598,34 +592,34 @@ export default class WorldMap {
         this.container.selectAll("path")
             .data(this.topo)
             .join("path")
-            .attr("data-id", (d) => d.id) // Add data-id attribute
+            .attr("data-id", (country) => country.id) // Add data-id attribute
             .attr("d", d3.geoPath().projection(this.projection))
-            .attr("fill", (d) => {
+            .attr("fill", (country) => {
                 const value =
                 selectedDataset === "temperature"
-                ? data[d.id]?.[this.currentMonth]
-                : data[d.id];
-                return value ? color_scale(value) : "#ccc"; // Default color for missing data
+                ? data[country.id]?.[this.currentMonth]
+                : data[country.id];
+                return value ? colorScale(value) : "#ccc"; // Default color for missing data
             })
-            .on("click", (event, d) => {
-                this.selectCountry(event, d);
-                this.centerOnCountry(d);
+            .on("click", (event, country) => {
+                this.selectCountry(country);
+                this.centerOnCountry(country);
             })
-            .on("mouseover", function (event, d) {
+            .on("mouseover", function () {
                 d3.select(this)
                     .attr("stroke", "#333")
                     .attr("stroke-width", "4px")
                     .attr("cursor", "pointer")
                     .attr("vector-effect", "non-scaling-stroke");
             })
-            .on("mouseout", function (event, d) {
+            .on("mouseout", function () {
                 if (!this.classList.contains('selected-country')) {
                     d3.select(this)
                         .attr("stroke", null)
                         .attr("stroke-width", null);
                 }
             })
-            .append("title").text((d) => d.properties.name); // Add country name as text;
+            .append("title").text((country) => country.properties.name); // Add country name as text;
 
         // Add transparent background rect to catch ocean clicks
         this.container.insert("rect", ":first-child")
