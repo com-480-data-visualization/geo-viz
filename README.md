@@ -82,9 +82,9 @@ Some sketches are available as PDFs in the [sketches](sketches) folder. The sket
 
 **80% of the final grade**
 
+Screencast available [here](https://www.youtube.com/watch?v=jnTis2ZXuUw).
 
-## Late policy
+Process book available [here]()
 
-- < 24h: 80% of the grade for the milestone
-- < 48h: 70% of the grade for the milestone
+Website hosted on github pages available [here](https://com-480-data-visualization.github.io/geo-viz/)
 
