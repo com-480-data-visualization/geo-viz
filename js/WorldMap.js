@@ -328,6 +328,7 @@ export default class WorldMap {
         
         // Add budget data if available
         if (this.datasets.budget[destCode]) {
+            console.log("UAGFIUGAIFUG");
             const budget = this.datasets.budget[destCode];
             detailHTML += `
                 <div class="detail-item">
@@ -470,9 +471,9 @@ export default class WorldMap {
                 return parseInt(value) / 1000000 + "M";
             } else if (selectedDataset === "hotels") {
                 return parseInt(value) / 1000000 + "M";
-            } else if (selectedDataset === "natural_sites") {
+            } else if (selectedDataset === "naturalSites") {
                 return value;
-            } else if (selectedDataset === "cultural_sites") {
+            } else if (selectedDataset === "culturalSites") {
                 return value;
             }
         });
