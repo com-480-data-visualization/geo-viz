@@ -84,7 +84,7 @@ Some sketches are available as PDFs in the [sketches](sketches) folder. The sket
 
 Screencast available [here](https://www.youtube.com/watch?v=jnTis2ZXuUw).
 
-Process book available [here]()
+Process book available [here](https://github.com/com-480-data-visualization/geo-viz/blob/master/Process_book.pdf)
 
 Website hosted on github pages available [here](https://com-480-data-visualization.github.io/geo-viz/)
 
